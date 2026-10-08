@@ -12,6 +12,19 @@ import { BLOCKS, PLAN } from './data/scene.js';
 import { TTS, REC, loadVoices, hasVoices, pickVoice, sortedVoices, frosineTestClip, playClip, playModelH, say } from './audio.js';
 import { engine, stop, stopSpeech, lockOff, playPassage, playLine, playMine } from './engine.js';
 import { $, esc, render } from './render.js';
+import { IC } from './icons.js';
+
+/* ---------- thème ---------- */
+function applyTheme(){
+  const t=S.theme||'sombre', root=document.documentElement;
+  if(t==='auto') delete root.dataset.theme; else root.dataset.theme = t==='clair' ? 'light' : 'dark';
+  const dark = t==='sombre' || (t==='auto' && matchMedia('(prefers-color-scheme: dark)').matches);
+  const meta=document.querySelector('meta[name=theme-color]'); if(meta) meta.content = dark ? '#140B0F' : '#F7F1E6';
+  document.querySelectorAll('#optTheme [data-val]').forEach(b=>b.setAttribute('aria-pressed', b.dataset.val===t ? 'true':'false'));
+}
+applyTheme();
+matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',applyTheme);
+document.querySelectorAll('[data-ic]').forEach(el=>{ el.insertAdjacentHTML('afterbegin', IC[el.dataset.ic]||''); });
 
 /* ---------- interactions ---------- */
 document.querySelector('.tabs').addEventListener('click',e=>{
@@ -43,6 +56,8 @@ function act(a,el){
   else if(a==='only-off'){ S.only=false; save(); state.phase='idle'; render(); }
   else if(a==='only-start'){ S.only=true; save(); engine.start(); }
   else if(a==='only-off-start'){ S.only=false; save(); engine.start(); }
+  else if(a==='run-stop') engine.stop();
+  else if(a==='go-block'){ stop(); S.mode='repeter'; S.block=+el.dataset.b; S.only=false; save(); render(); window.scrollTo(0,0); }
   else if(a==='to-repeter'){ stop(); S.mode='repeter'; save(); render(); window.scrollTo(0,0); }
   else if(a==='play-all') playPassage(false);
   else if(a==='play-mine') playPassage(true);
@@ -52,6 +67,7 @@ function act(a,el){
   else if(a==='install' && state.INSTALL){ state.INSTALL.prompt(); state.INSTALL.userChoice.finally(()=>{ state.INSTALL=null; render(); }); }
 }
 $('#row').addEventListener('click',e=>{ const t=e.target.closest('[data-act]'); if(t) act(t.dataset.act,t); });
+$('#runbar').addEventListener('click',e=>{ const t=e.target.closest('[data-act]'); if(t) act(t.dataset.act,t); });
 $('#script').addEventListener('click',e=>{
   const a=e.target.closest('[data-act]'); if(a){ e.stopPropagation(); act(a.dataset.act,a); return; }
   const g=e.target.closest('[data-go]'); if(g){ const [d,k]=g.dataset.go.split(':').map(Number); applyPreset(PLAN[d].go[k].p); return; }
@@ -84,6 +100,7 @@ function syncDlg(){
   $('#fieldSrc').hidden=!REC; $('#fieldFv').hidden=!REC||S.src!=='rec';
   $('#optSrc').value=S.src; $('#optFv').value=S.fv||'F0';
   $('#offlineInfo').textContent = state.OFFLINE_READY ? 'Disponible hors ligne : tout fonctionne sans réseau, sauf la vérification à la voix.' : 'Préparation du mode hors ligne au premier chargement.';
+  applyTheme();
 }
 $('#btnSettings').addEventListener('click',()=>{ syncDlg(); if(dlg.showModal) dlg.showModal(); else dlg.setAttribute('open',''); });
 $('#btnClose').addEventListener('click',()=>{ dlg.close ? dlg.close() : dlg.removeAttribute('open'); });
@@ -96,6 +113,7 @@ $('#optTol').addEventListener('change',e=>{ S.tol=e.target.value; save(); });
 $('#optVoice').addEventListener('change',e=>{ S.voice=e.target.value; save(); });
 $('#optSrc').addEventListener('change',e=>{ S.src=e.target.value; save(); syncDlg(); });
 $('#optFv').addEventListener('change',e=>{ S.fv=e.target.value; save(); });
+$('#optTheme').addEventListener('click',e=>{ const t=e.target.closest('[data-val]'); if(!t) return; S.theme=t.dataset.val; save(); applyTheme(); });
 $('#btnTest').addEventListener('click',async()=>{ stopSpeech(); const tok=state.RUN; const src=await frosineTestClip();
   if(src) playClip(src,S.rate,tok); else if(TTS) say("Ah, mon Dieu ! Que vous vous portez bien ! Et que vous avez là un vrai visage de santé !", S.rate, 1, tok); });
 $('#btnReset').addEventListener('click',()=>{ if(confirm('Effacer tous tes résultats (répliques justes et à revoir) ?')){ clearStats(); S.only=false; S.daily={}; save(); stop(); } });
