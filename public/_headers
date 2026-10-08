@@ -25,3 +25,4 @@
   Cache-Control: no-cache
 /manifest.webmanifest
   Cache-Control: no-cache
+  Content-Type: application/manifest+json
