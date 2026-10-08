@@ -36,8 +36,8 @@
 }
 
 *,*::before,*::after{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%;scroll-padding-top:6rem}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.45;overflow-x:hidden}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;scroll-padding-top:6rem;overflow-x:clip}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.45;overflow-x:clip}
 button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
 button:disabled{cursor:default}
 :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
@@ -151,6 +151,7 @@ body.run main{padding-bottom:calc(12rem + env(safe-area-inset-bottom,0px))}
 
 /* ---------- cartes ---------- */
 .stack{display:flex;flex-direction:column;gap:.9rem;max-width:44rem;margin:0 auto}
+.stack>*,.script>*,.card,.strip,.segs{min-width:0;max-width:100%}
 .card{font-family:var(--sans);background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:1.1rem 1.15rem;line-height:1.5}
 .card h2{font-family:var(--serif);font-weight:600;font-size:1.45rem;line-height:1.2;margin:0 0 .35rem}
 .card h3{font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 .6rem}
@@ -178,7 +179,8 @@ body.run main{padding-bottom:calc(12rem + env(safe-area-inset-bottom,0px))}
 .donebtn .box{width:1.5rem;height:1.5rem;border-radius:7px;border:2px solid var(--line);display:grid;place-items:center;flex:none;color:var(--on-accent)}
 .donebtn[aria-pressed="true"] .box{background:var(--ok);border-color:var(--ok);color:var(--bg)}
 .donebtn .box .ic{width:1rem;height:1rem}
-.donebtn .cnt{margin-left:auto;font-weight:500;color:var(--muted);font-size:.85rem}
+.donebtn .cnt{margin-left:auto;font-weight:500;color:var(--muted);font-size:.85rem;white-space:nowrap}
+.donebtn{flex-wrap:wrap;row-gap:.2rem}
 
 .late p{margin:.2rem 0}
 .late .item{padding:.6rem 0;border-top:1px solid var(--line)}
