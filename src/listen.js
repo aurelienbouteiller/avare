@@ -1,7 +1,7 @@
 import { S } from './store.js';
 import { state } from './state.js';
 import { LINES } from './data/scene.js';
-import { compare } from './compare.js';
+import { compare, fixNames } from './compare.js';
 import { evaluate, handsTimer } from './engine.js';
 import { render, renderDock } from './render.js';
 
@@ -13,7 +13,7 @@ export function listen(i,tok){
   const L=LINES[i], t0=Date.now(), words=L.t.split(/\s+/).length, maxMs=7000+words*800;
   let prev='', sess='', lastSpeech=Date.now()+2500, done=false, silenceT=null, hardT=null, r=null;
   state.LISTENING=true; state.HEARD=''; renderDock();
-  const text=()=>(prev+' '+sess).replace(/\s+/g,' ').trim();
+  const text=()=>fixNames((prev+' '+sess).replace(/\s+/g,' ').trim());
   const end=()=>{ done=true; clearTimeout(silenceT); clearTimeout(hardT); state.LISTENING=false; try{ r&&r.abort(); }catch(e){} };
   const finish=()=>{ if(done) return; const said=text(); end(); state.LISTEN=null; if(tok!==state.RUN) return; evaluate(i,said); };
   const open=()=>{

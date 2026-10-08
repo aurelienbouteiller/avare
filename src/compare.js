@@ -42,3 +42,12 @@ export function compare(expected,said){
   const nh=hit.filter(Boolean).length;
   return {score:n?nh/n:1, disp, dispOk, said};
 }
+/* ---------- noms propres mal transcrits par la reconnaissance vocale ---------- */
+// Variantes explicites : un rapprochement approximatif changerait aussi « mariage » en Mariane.
+const NAMES={
+  Frosine:/\b(?:f?rosine|frozine|prosine|crosine|frosinne|frosyne|f?rau?zine|froz?ines?|frosines)\b|\bfro(?:id|s)? (?:zine|sine)\b/gi,
+  Mariane:/\bmarie[ -]?anne\b|\bmarianne\b/gi,
+};
+export function fixNames(s){
+  s=String(s); for(const n in NAMES) s=s.replace(NAMES[n],n); return s;
+}
