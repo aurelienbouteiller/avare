@@ -1,31 +1,33 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" data-theme="dark">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#5E3A94">
+<meta name="theme-color" content="#140B0F">
+<meta name="color-scheme" content="dark light">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Le souffleur d'Harpagon</title>
 <link rel="icon" href="/icons/icon-192.png">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
+<script>
+// Applique le thème enregistré avant le premier affichage, pour éviter un flash.
+try{ var t=(JSON.parse(localStorage.getItem('souffleur-harpagon-v1'))||{}).s||{}; t=t.theme;
+  if(t==='clair') document.documentElement.dataset.theme='light'; else if(t==='auto') delete document.documentElement.dataset.theme; }catch(e){}
+</script>
 <script type="module" src="/src/main.js"></script>
 </head>
 <body>
 <header class="top">
   <div class="wrap">
     <div class="titlebar">
-      <div>
-        <h1>Le souffleur d'Harpagon</h1>
-        <p class="sub">L'Avare, acte II, scène 5. Tu joues Harpagon.</p>
+      <div class="brand">
+        <h1>Le souffleur</h1>
+        <p class="sub">Harpagon · <i>L'Avare</i>, acte II, scène 5</p>
       </div>
-      <button class="iconbtn" id="btnSettings" aria-label="Réglages">⚙︎</button>
+      <button class="iconbtn" id="btnSettings" aria-label="Réglages" data-ic="gear"></button>
     </div>
-    <div class="tabs" role="tablist">
-      <button role="tab" data-mode="jour">Aujourd'hui</button>
-      <button role="tab" data-mode="lire">Lire</button>
-      <button role="tab" data-mode="repeter">Répéter</button>
-    </div>
+    <div class="runbar" id="runbar" hidden></div>
     <nav class="chips" id="chips" aria-label="Blocs"></nav>
   </div>
 </header>
@@ -37,50 +39,82 @@
   <div class="row" id="row"></div>
 </footer>
 
-<dialog id="dlg">
-  <h2>Réglages</h2>
-  <div class="field" id="fieldSrc">
-    <div>Type de voix<small>Les voix enregistrées sont les plus naturelles. La voix du téléphone sert de secours.</small></div>
-    <select id="optSrc"><option value="rec">Voix enregistrées</option><option value="tts">Voix du téléphone</option></select>
+<nav class="tabs" role="tablist" aria-label="Écrans">
+  <button role="tab" data-mode="jour"><span data-ic="sun"></span><span>Aujourd'hui</span></button>
+  <button role="tab" data-mode="lire"><span data-ic="book"></span><span>Lire</span></button>
+  <button role="tab" data-mode="repeter"><span data-ic="mask"></span><span>Répéter</span></button>
+</nav>
+
+<dialog id="dlg" aria-labelledby="dlgTitle">
+  <div class="dlghead">
+    <h2 id="dlgTitle">Réglages</h2>
+    <button class="iconbtn" id="btnClose" aria-label="Fermer" data-ic="close"></button>
   </div>
-  <div class="field" id="fieldFv">
-    <div>Voix de Frosine<small>En mode partenaire imprévisible, les deux voix alternent au hasard.</small></div>
-    <select id="optFv"><option value="F0">Denise</option><option value="F1">Vivienne</option></select>
-  </div>
-  <div class="field">
-    <div>Frosine parle<small>Frosine lit ses répliques à voix haute.</small></div>
-    <input type="checkbox" id="optTts">
-  </div>
-  <div class="field col">
-    <div>Vitesse de Frosine <span id="rateVal"></span></div>
-    <input type="range" id="optRate" min="0.7" max="1.4" step="0.05">
-  </div>
-  <div class="field">
-    <div>Partenaire imprévisible<small>Débit, voix et temps de réaction changent à chaque réplique.</small></div>
-    <input type="checkbox" id="optWild">
-  </div>
-  <div class="field">
-    <div>Mains libres<small>Tout s'enchaîne sans toucher l'écran. Avec la vérification à la voix, ta réplique est jugée automatiquement.</small></div>
-    <input type="checkbox" id="optHands">
-  </div>
-  <div class="field">
-    <div>Tolérance de la vérification à la voix<small>La reconnaissance vocale peut se tromper sur les mots anciens.</small></div>
-    <select id="optTol"><option value="stricte">Stricte (95 %)</option><option value="normale">Normale (85 %)</option><option value="souple">Souple (70 %)</option></select>
-  </div>
-  <div class="field">
-    <div>Voix du téléphone<small id="voiceInfo"></small></div>
-    <select id="optVoice"></select>
-  </div>
-  <div class="field">
-    <div>Tester la voix<small>Fait entendre la première réplique de Frosine.</small></div>
-    <button class="linkbtn" id="btnTest" style="margin:0">Écouter</button>
-  </div>
-  <p class="tip" id="offlineInfo"></p>
-  <div class="dlgrow">
-    <button class="linkbtn" id="btnReset">Effacer mes résultats</button>
-    <button class="linkbtn" id="btnResetRec">Effacer mes enregistrements</button>
-    <button class="linkbtn primary" id="btnClose">Fermer</button>
-  </div>
+
+  <section class="group">
+    <h3>Voix de Frosine</h3>
+    <div class="field" id="fieldSrc">
+      <div>Type de voix<small>Les voix enregistrées sont les plus naturelles. La voix du téléphone sert de secours.</small></div>
+      <select id="optSrc"><option value="rec">Enregistrées</option><option value="tts">Du téléphone</option></select>
+    </div>
+    <div class="field" id="fieldFv">
+      <div>Comédienne<small>En partenaire imprévisible, les deux voix alternent au hasard.</small></div>
+      <select id="optFv"><option value="F0">Denise</option><option value="F1">Vivienne</option></select>
+    </div>
+    <div class="field">
+      <div>Frosine parle<small>Frosine lit ses répliques à voix haute.</small></div>
+      <input type="checkbox" class="switch" id="optTts">
+    </div>
+    <div class="field col">
+      <div class="between">Vitesse<span id="rateVal" class="val"></span></div>
+      <input type="range" id="optRate" min="0.7" max="1.4" step="0.05">
+    </div>
+    <div class="field">
+      <div>Voix du téléphone<small id="voiceInfo"></small></div>
+      <select id="optVoice"></select>
+    </div>
+    <div class="field">
+      <div>Tester la voix<small>La première réplique de Frosine.</small></div>
+      <button class="btn-s" id="btnTest"><span data-ic="play"></span>Écouter</button>
+    </div>
+  </section>
+
+  <section class="group">
+    <h3>Répétition</h3>
+    <div class="field">
+      <div>Partenaire imprévisible<small>Débit, voix et temps de réaction changent à chaque réplique.</small></div>
+      <input type="checkbox" class="switch" id="optWild">
+    </div>
+    <div class="field">
+      <div>Mains libres<small>Tout s'enchaîne sans toucher l'écran. Avec la vérification à la voix, ta réplique est jugée automatiquement.</small></div>
+      <input type="checkbox" class="switch" id="optHands">
+    </div>
+    <div class="field">
+      <div>Tolérance à la voix<small>La reconnaissance vocale peut se tromper sur les mots anciens.</small></div>
+      <select id="optTol"><option value="stricte">Stricte (95 %)</option><option value="normale">Normale (85 %)</option><option value="souple">Souple (70 %)</option></select>
+    </div>
+  </section>
+
+  <section class="group">
+    <h3>Affichage</h3>
+    <div class="field col">
+      <div>Thème</div>
+      <div class="segs full" id="optTheme" role="group" aria-label="Thème">
+        <button class="seg" data-val="sombre">Sombre</button>
+        <button class="seg" data-val="clair">Clair</button>
+        <button class="seg" data-val="auto">Auto</button>
+      </div>
+    </div>
+    <p class="tip" id="offlineInfo"></p>
+  </section>
+
+  <section class="group danger">
+    <h3>Zone sensible</h3>
+    <div class="dlgrow">
+      <button class="btn-s ko" id="btnReset">Effacer mes résultats</button>
+      <button class="btn-s ko" id="btnResetRec">Effacer mes enregistrements</button>
+    </div>
+  </section>
 </dialog>
 </body>
 </html>

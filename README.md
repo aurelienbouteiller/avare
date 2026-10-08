@@ -6,6 +6,8 @@ Appli web installable (PWA) pour apprendre le rôle d'Harpagon dans *L'Avare*, a
 - **Lire** : la scène découpée en 6 blocs, avec notes de jeu ; touche une réplique pour l'entendre.
 - **Répéter** : Frosine donne la réplique (voix enregistrées ou voix du téléphone), tu dis la tienne, masquée à divers degrés. Vérification manuelle, à la voix (reconnaissance vocale) ou en t'enregistrant.
 
+Thème « velours et or » sombre par défaut, thème clair ou automatique dans les réglages.
+
 Tout est stocké sur l'appareil (`localStorage` pour les résultats, IndexedDB pour les enregistrements). Une fois chargée, l'appli fonctionne hors ligne, sauf la vérification à la voix.
 
 ## Développement
@@ -23,7 +25,7 @@ npm run preview    # sert dist/ sur http://localhost:4173 (service worker actif)
 
 | Chemin | Rôle |
 | --- | --- |
-| `index.html` | Coquille HTML (en-tête, zone de texte, barre du bas, réglages) |
+| `index.html` | Coquille HTML (en-tête, barre de répétition, zone de texte, dock d'actions, navigation du bas, réglages) |
 | `src/main.js` | Démarrage, interactions, réglages, enregistrement du service worker |
 | `src/data/scene.js` | Texte de la scène, blocs, notes de jeu, plan de répétition |
 | `src/engine.js` | Moteur de répétition et lecture des passages |
@@ -31,6 +33,7 @@ npm run preview    # sert dist/ sur http://localhost:4173 (service worker actif)
 | `src/compare.js` | Comparaison de la réplique dite avec le texte |
 | `src/listen.js`, `src/recorder.js` | Reconnaissance vocale, enregistrement de ta voix |
 | `src/render.js` | Rendu des écrans |
+| `src/icons.js` | Icônes SVG intégrées (fonctionnent hors ligne) |
 | `src/store.js`, `src/state.js` | Données sauvegardées, état d'exécution partagé |
 | `public/audio/<voix>/L<réplique>_S<segment>.mp3` | Voix enregistrées : `F0` Denise, `F1` Vivienne, `H0` Harpagon modèle |
 

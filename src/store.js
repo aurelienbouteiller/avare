@@ -1,6 +1,6 @@
 /* ---------- stockage ---------- */
 const KEY='souffleur-harpagon-v1';
-const DEF={mode:'jour',block:1,mask:'coins',order:'scene',check:'manual',tol:'normale',rate:1,wild:false,hands:false,voice:'',tts:true,only:false,src:'rec',fv:'F0',done:{},daily:{}};
+const DEF={mode:'jour',block:1,mask:'coins',order:'scene',check:'manual',tol:'normale',rate:1,wild:false,hands:false,voice:'',tts:true,only:false,src:'rec',fv:'F0',theme:'sombre',done:{},daily:{}};
 export const S=Object.assign({},DEF), STATS={};
 try{ const raw=localStorage.getItem(KEY); if(raw){ const o=JSON.parse(raw); Object.assign(S,o.s||{}); Object.assign(STATS,o.st||{}); } }catch(e){}
 S.done=S.done||{}; S.daily=S.daily||{};
