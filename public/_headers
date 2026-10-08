@@ -1,0 +1,27 @@
+# Lu par Netlify et Cloudflare Pages.
+/*
+  Permissions-Policy: microphone=(self), camera=(), geolocation=()
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+# Fichiers nommés avec un hash par Vite : jamais modifiés en place.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/audio/*
+  Cache-Control: public, max-age=604800
+
+/icons/*
+  Cache-Control: public, max-age=604800
+
+# Toujours revalidés, pour que les mises à jour arrivent tout de suite.
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/sw.js
+  Cache-Control: no-cache
+/workbox-*.js
+  Cache-Control: no-cache
+/manifest.webmanifest
+  Cache-Control: no-cache
