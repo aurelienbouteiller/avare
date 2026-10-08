@@ -39,8 +39,6 @@ npm run preview    # sert dist/ sur http://localhost:4173 (service worker actif)
 
 Pour ajouter ou remplacer un clip, dépose le MP3 dans `public/audio/<voix>/` et ajoute son identifiant dans `src/data/clips.json`. Le service worker est régénéré à chaque build, et seuls les fichiers modifiés sont re-téléchargés par les utilisateurs.
 
-`scripts/extract-audio.mjs` a servi à convertir l'ancien `audio.js` (MP3 en base64) en fichiers ; il n'est plus nécessaire au build.
-
 ## Déploiement
 
 Le site est entièrement statique. HTTPS est obligatoire (micro, service worker), ce que fournissent les deux plateformes.
