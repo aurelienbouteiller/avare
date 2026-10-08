@@ -28,11 +28,14 @@ function masked(t,mode){
 }
 function fText(L){ return L.segs.map((s,k)=> s.d ? `<span class="dida" data-seg="${k}">${esc(s.d)}</span>` : `<span class="seg-t" data-seg="${k}">${esc(s.t)}</span>`).join(' '); }
 function exitNote(L){ return L.end ? `<div class="exit">Harpagon sort. Frosine reste seule.</div>` : ''; }
+// Notes de jeu ouvertes dans Lire : gardées ouvertes quand le texte est redessiné.
+const openNotes=new Set();
+document.addEventListener('toggle',e=>{ const d=e.target; if(d.dataset && d.dataset.note) d.open ? openNotes.add(d.dataset.note) : openNotes.delete(d.dataset.note); },true);
 function blockHead(b,full){
   const n=NOTES[b], B=BLOCKS[b];
   if(!full) return `<div class="bhead slim"><b>${esc(B.label)}</b><span class="obj">${esc(n.obj)}</span></div>`;
   return `<div class="bhead"><div class="bnum">Bloc ${b} sur 6</div><h2>${esc(B.short)}</h2><p class="obj">Objectif : ${esc(n.obj)}</p>
-    <details><summary>Note de jeu</summary><p>${esc(n.jeu)}</p></details></div>`;
+    <details data-note="${b}"${openNotes.has(String(b))?' open':''}><summary>Note de jeu</summary><p>${esc(n.jeu)}</p></details></div>`;
 }
 function resultHtml(res){
   const words=res.disp.map((w,k)=> res.dispOk[k] ? esc(w) : `<span class="miss">${esc(w)}</span>`).join(' ');
@@ -221,7 +224,7 @@ export function renderDock(){
     const hasMine=blockLines(S.block).some(i=>RECS.has(i));
     s = state.PASSAGE ? `<span class="live"><span class="dot"></span>Lecture du passage</span>` : 'Touche une réplique pour l\'entendre.';
     b = (state.PASSAGE ? side('stop-all',IC.stop,'Arrêter') : side('play-all',IC.play,'Écouter')+(hasMine?side('play-mine',IC.mic,'Ma voix'):''))
-      + `<button class="btn main" data-act="to-repeter">Répéter ce passage${IC.arrow}</button>`;
+      + `<button class="btn main" data-act="to-repeter">${hasMine?'Répéter':'Répéter ce passage'}${IC.arrow}</button>`;
   } else if(state.phase==='idle'){
     const bits=[]; if(S.hands) bits.push('Mains libres'); if(S.wild) bits.push('Partenaire imprévisible');
     s = bits.map(x=>`<span class="pill">${x}</span>`).join('');
