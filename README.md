@@ -35,7 +35,7 @@ npm run preview    # sert dist/ sur http://localhost:4173 (service worker actif)
 | `src/render.js` | Rendu des écrans |
 | `src/icons.js` | Icônes SVG intégrées (fonctionnent hors ligne) |
 | `src/store.js`, `src/state.js` | Données sauvegardées, état d'exécution partagé |
-| `public/audio/<voix>/L<réplique>_S<segment>.mp3` | Voix enregistrées : `F0` Denise, `F1` Vivienne, `H0` Harpagon modèle |
+| `public/audio/<voix>/L<réplique>_S<segment>.mp3` | Voix enregistrées : `F0` Denise, `F1` Vivienne, `F2` Charline, `F3` Ariane, `H0` Harpagon modèle |
 
 Pour ajouter ou remplacer un clip, dépose le MP3 dans `public/audio/<voix>/` et ajoute son identifiant dans `src/data/clips.json`. Le service worker est régénéré à chaque build, et seuls les fichiers modifiés sont re-téléchargés par les utilisateurs.
 
