@@ -1,0 +1,43 @@
+/* ---------- écran Lire : réplique en cours de lecture ---------- */
+.pl {
+  color: var(--muted);
+  opacity: 0.7;
+  display: inline-flex;
+}
+.pl .ic {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+.ln.tap.playing {
+  background: var(--fros-soft);
+}
+.ln.H.tap.playing {
+  background: var(--harp-soft);
+}
+.eq {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 0.9rem;
+}
+.eq i {
+  width: 3px;
+  background: currentColor;
+  border-radius: 2px;
+  animation: eq 0.9s ease-in-out infinite;
+}
+.eq i:nth-child(2) {
+  animation-delay: -0.3s;
+}
+.eq i:nth-child(3) {
+  animation-delay: -0.6s;
+}
+@keyframes eq {
+  0%,
+  100% {
+    height: 30%;
+  }
+  50% {
+    height: 100%;
+  }
+}

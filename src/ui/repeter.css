@@ -1,0 +1,161 @@
+/* ---------- écran Répéter ---------- */
+/* pendant la répétition : historique discret, réplique d'appel lisible, ta réplique en grand */
+.ln.past {
+  opacity: 0.5;
+  font-size: 1rem;
+  line-height: 1.5;
+  padding: 0.45rem 0.85rem;
+}
+.ln.past .who {
+  font-size: 0.68rem;
+}
+.ln.cue {
+  border-left-color: var(--fros);
+  background: var(--surface);
+}
+.ln.cur.F {
+  background: var(--fros-soft);
+  border-left-color: var(--fros);
+  font-size: 1.25rem;
+}
+.ln.cur.H {
+  background: var(--surface-2);
+  font-size: 1.42rem;
+  line-height: 1.6;
+  padding: 1rem 1.1rem 1.1rem;
+  box-shadow: var(--shadow);
+  border-left-width: 4px;
+}
+.ln.cur.fresh {
+  animation: enter 0.35s ease-out;
+}
+.ln.cur.H .who {
+  font-size: 0.8rem;
+}
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.timer {
+  height: 4px;
+  background: var(--line);
+  border-radius: 4px;
+  margin-top: 0.75rem;
+  overflow: hidden;
+}
+.timer i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--harp);
+  transition-property: width;
+  transition-timing-function: linear;
+}
+
+/* préparation de la séance */
+.meter {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.8rem;
+}
+.meter .mbar {
+  flex: 1;
+  height: 8px;
+}
+.meter b {
+  font-size: 0.95rem;
+}
+.opt {
+  margin-top: 1rem;
+}
+.opt:first-of-type {
+  margin-top: 0.2rem;
+}
+.opt .lbl {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--muted);
+  margin-bottom: 0.35rem;
+}
+.opt .muted {
+  margin: 0.4rem 0 0;
+  font-size: 0.84rem;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--line);
+  background: var(--bg);
+  border-radius: 12px;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+.toggle .sw {
+  width: 2.9rem;
+  height: 1.7rem;
+  border-radius: 1rem;
+  background: var(--line);
+  position: relative;
+  flex: none;
+  transition: background 0.2s;
+}
+.toggle .sw::after {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: calc(1.7rem - 6px);
+  height: calc(1.7rem - 6px);
+  border-radius: 50%;
+  background: var(--surface);
+  transition: transform 0.2s;
+}
+.toggle[aria-pressed="true"] .sw {
+  background: var(--accent);
+}
+.toggle[aria-pressed="true"] .sw::after {
+  transform: translateX(1.2rem);
+}
+
+/* bilan */
+.score {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin: 0.2rem 0 0.4rem;
+}
+.score b {
+  font-family: var(--serif);
+  font-size: 2.6rem;
+  line-height: 1;
+  color: var(--harp);
+}
+.missed {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+}
+.missed li {
+  padding: 0.5rem 0 0.5rem 0.7rem;
+  border-left: 3px solid var(--ko);
+  margin-top: 0.4rem;
+  font-family: var(--serif);
+  font-size: 1rem;
+  color: var(--ink);
+}

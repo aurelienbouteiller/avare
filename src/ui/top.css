@@ -1,0 +1,155 @@
+/* ---------- en-tête ---------- */
+.top {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  padding: calc(0.7rem + env(safe-area-inset-top, 0px)) 1rem 0.6rem;
+}
+.wrap {
+  max-width: 44rem;
+  margin: 0 auto;
+}
+.titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+h1 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.4rem;
+  line-height: 1.1;
+  margin: 0;
+  letter-spacing: -0.01em;
+  color: var(--harp);
+}
+.sub {
+  margin: 0.15rem 0 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+body.run .titlebar,
+body.run .chips {
+  display: none;
+}
+
+/* puces de bloc */
+.chips {
+  display: flex;
+  gap: 0.45rem;
+  overflow-x: auto;
+  padding: 0.65rem 0 0.1rem;
+  margin: 0 -1rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  scrollbar-width: none;
+}
+.chips::-webkit-scrollbar {
+  display: none;
+}
+.chip {
+  flex: none;
+  position: relative;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 0.45rem 0.8rem 0.55rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+  min-width: 5.5rem;
+}
+.chip .cl {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.45rem;
+}
+.chip[aria-pressed="true"] {
+  border-color: var(--harp);
+  background: var(--harp-soft);
+  color: var(--ink);
+}
+
+.badge {
+  background: var(--ko);
+  color: var(--bg);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 1.2rem;
+  height: 1.2rem;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 0.3rem;
+}
+
+/* barre de répétition */
+.runbar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+}
+.runbar .where {
+  min-width: 0;
+}
+.runbar .bname {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.05rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.runbar .count {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.tally {
+  display: flex;
+  gap: 0.35rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.tally span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+}
+.tally .ok {
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+.tally .ko {
+  background: var(--ko-soft);
+  color: var(--ko);
+}
+.tally .ic {
+  width: 0.95em;
+  height: 0.95em;
+}
+.prog {
+  grid-column: 1 / -1;
+  height: 4px;
+  border-radius: 4px;
+  background: var(--line);
+  overflow: hidden;
+}
+.prog i {
+  display: block;
+  height: 100%;
+  background: var(--harp);
+  border-radius: 4px;
+  transition: width 0.3s;
+}

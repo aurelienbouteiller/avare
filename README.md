@@ -38,10 +38,11 @@ Le code est rangé par couche. Chaque couche n'importe que les couches au-dessus
 | `src/domain/` | Logique pure, sans DOM et testée : comparaison de la réplique dite (`compare`, `numbers`, `names`), ordre des répliques d'une séance (`sequence`), comptage et maîtrise (`stats`), répliques (`lines`), dates (`dates`) |
 | `src/storage/` | Données sur l'appareil : réglages et résultats validés au chargement (`settings`, localStorage), enregistrements de ta voix (`recordings`, IndexedDB) |
 | `src/device/` | Capacités de l'appareil (`platform`), voix du téléphone (`tts`), voix enregistrées (`clips`), lecteur audio (`player`), réplique dite par la meilleure voix disponible (`speak`), reconnaissance vocale (`listen`), micro (`recorder`), écran allumé (`wake-lock`) |
-| `src/ui/` | Rendu des écrans en templates lit-html, à partir des données et de l'état seulement : un fichier par zone (`top`, `jour`, `lire`, `repeter`, `dock`), morceaux partagés (`parts`), icônes SVG intégrées (`icons`) |
+| `src/ui/` | Rendu des écrans en templates lit-html, à partir des données et de l'état seulement : un fichier par zone (`top`, `jour`, `lire`, `repeter`, `dock`), morceaux partagés (`parts`), icônes SVG intégrées (`icons`). Chaque composant a sa feuille de style à côté de lui (`jour.css`…) |
 | `src/engine/` | Orchestration : moteur de répétition (`rehearsal`), lecture des passages (`passage`), arrêt commun de tout son (`sound`) |
 | `src/app/` | Branchement de l'interface : actions des boutons (`actions`), évènements (`events`), réglages (`settings-dialog`), thème, service worker (`pwa`), version |
-| `src/main.ts` | Démarrage |
+| `src/main.ts` | Démarrage, et import des feuilles de style dans l'ordre de la cascade |
+| `src/styles/` | Styles communs : thème clair et sombre (`theme`), bases et mise en page (`base`), cartes et boutons (`cards`), choix segmentés (`controls`) |
 | `index.html` | Coquille HTML (en-tête, barre de répétition, zone de texte, dock d'actions, navigation du bas, réglages) |
 | `plugins/clips.ts` | Plugin Vite : module `virtual:clips`, liste des MP3 présents dans `public/audio/` |
 | `*.test.ts` | Tests Vitest, à côté du module testé |

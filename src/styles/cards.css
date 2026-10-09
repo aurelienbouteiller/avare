@@ -1,0 +1,108 @@
+/* ---------- cartes ---------- */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  max-width: 44rem;
+  margin: 0 auto;
+}
+.stack > *,
+.script > *,
+.card,
+.strip,
+.segs {
+  min-width: 0;
+  max-width: 100%;
+}
+.card {
+  font-family: var(--sans);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 1.1rem 1.15rem;
+  line-height: 1.5;
+}
+.card h2 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.45rem;
+  line-height: 1.2;
+  margin: 0 0 0.35rem;
+}
+.card h3 {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 0.6rem;
+}
+.card p {
+  margin: 0.35rem 0;
+}
+.muted {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.kicker {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin: 0 0 0.25rem;
+}
+.between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+/* boutons dans les cartes */
+.btn-l {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  border: 0;
+  border-radius: 14px;
+  min-height: 3.25rem;
+  padding: 0.6rem 1rem;
+  font-weight: 700;
+  font-size: 1.02rem;
+  background: var(--accent);
+  color: var(--on-accent);
+}
+.btn-s {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  border-radius: 12px;
+  min-height: 2.75rem;
+  padding: 0.45rem 0.9rem;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+.btn-s .ic {
+  width: 1em;
+  height: 1em;
+}
+.btn-s.ko {
+  color: var(--ko);
+  border-color: color-mix(in srgb, var(--ko) 40%, var(--line));
+  background: transparent;
+}
+.btnrow {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-top: 0.6rem;
+}
+.btnrow .btn-s {
+  flex: 1 1 auto;
+}

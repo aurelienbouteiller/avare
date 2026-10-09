@@ -1,0 +1,230 @@
+/* ---------- morceaux partagés : répliques, masques, intertitres de bloc, barre de maîtrise ---------- */
+/* barre de maîtrise (puces de bloc, préparation de la séance) */
+.mbar {
+  height: 4px;
+  border-radius: 4px;
+  background: var(--line);
+  overflow: hidden;
+  display: flex;
+}
+.mbar .g {
+  background: var(--ok);
+}
+.mbar .r {
+  background: var(--ko);
+}
+
+/* répliques */
+.ln {
+  padding: 0.75rem 0.95rem;
+  border-radius: 12px;
+  font-family: var(--serif);
+  font-size: 1.15rem;
+  line-height: 1.6;
+  position: relative;
+}
+.who {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--sans);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.15rem;
+}
+.who .name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.ln.F .who {
+  color: var(--fros);
+}
+.ln.H .who {
+  color: var(--harp);
+}
+.ln.H {
+  margin-left: 1.25rem;
+  border-left: 3px solid var(--harp);
+  border-radius: 0 12px 12px 0;
+}
+.ln.F {
+  border-left: 3px solid transparent;
+}
+
+.dida {
+  display: block;
+  font-style: italic;
+  color: var(--harp);
+  font-size: 0.95em;
+  margin: 0.35rem 0;
+  padding-left: 0.6rem;
+  border-left: 2px dotted var(--harp);
+}
+.dida.now {
+  font-weight: 600;
+}
+.seg-t.now {
+  text-decoration: underline;
+  text-decoration-color: var(--fros);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.22em;
+}
+.exit {
+  font-family: var(--sans);
+  font-size: 0.84rem;
+  color: var(--muted);
+  font-style: italic;
+  text-align: center;
+  padding: 0.4rem 0;
+}
+.mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  font-size: 0.8rem;
+}
+.mark .ic {
+  width: 1em;
+  height: 1em;
+}
+.mark.ok {
+  color: var(--ok);
+}
+.mark.ko {
+  color: var(--ko);
+}
+.coin {
+  display: inline-block;
+  height: 0.62em;
+  border-radius: 1em;
+  background: var(--harp);
+  opacity: 0.8;
+  margin: 0 0.1em;
+  vertical-align: middle;
+  width: calc(var(--n) * 0.42em + 0.3em);
+}
+.ini {
+  white-space: nowrap;
+}
+.blank {
+  display: inline-block;
+  border-bottom: 2px solid var(--harp);
+  width: calc(var(--n) * 0.46em);
+  height: 1em;
+  vertical-align: baseline;
+  margin-left: 0.04em;
+}
+.miss {
+  color: var(--ko);
+  font-weight: 600;
+  text-decoration: underline wavy var(--ko);
+  text-underline-offset: 0.22em;
+}
+.heard {
+  display: block;
+  font-family: var(--sans);
+  font-size: 0.86rem;
+  color: var(--muted);
+  margin-top: 0.55rem;
+  line-height: 1.45;
+}
+.heard:empty {
+  display: none;
+}
+
+.mini {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+  margin-top: 0.6rem;
+  font-family: var(--sans);
+}
+.mini button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.mini .ic {
+  width: 0.9em;
+  height: 0.9em;
+}
+
+/* lecture : on peut toucher chaque réplique */
+.ln.tap {
+  cursor: pointer;
+}
+.ln.tap:active {
+  background: var(--surface);
+}
+
+/* intertitres de bloc */
+.bhead {
+  font-family: var(--sans);
+  margin: 1.4rem 0 0.3rem;
+  padding: 0 0.2rem;
+}
+.script > .bhead:first-child {
+  margin-top: 0.2rem;
+}
+.bnum {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.bhead h2 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 1.35rem;
+  margin: 0.05rem 0 0.2rem;
+}
+.obj {
+  color: var(--harp);
+  font-weight: 600;
+  font-size: 0.92rem;
+  margin: 0;
+}
+.bhead details {
+  margin-top: 0.3rem;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+.bhead summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--muted);
+  padding: 0.2rem 0;
+}
+.bhead details p {
+  margin: 0.25rem 0 0;
+  line-height: 1.5;
+}
+.bhead.slim {
+  margin: 1rem 0 0.1rem;
+  display: flex;
+  gap: 0.5rem;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+.bhead.slim b {
+  font-family: var(--serif);
+  font-size: 1.02rem;
+}
+.bhead.slim .obj {
+  font-size: 0.82rem;
+}

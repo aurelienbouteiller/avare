@@ -1,0 +1,51 @@
+/* ---------- navigation du bas ---------- */
+.tabs {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 7;
+  height: var(--navh);
+  padding: 0 max(0.5rem, calc(50% - 16rem)) env(safe-area-inset-bottom, 0px);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--surface);
+  border-top: 1px solid var(--line);
+}
+body.run .tabs {
+  display: none;
+}
+.tabs button {
+  border: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  max-width: 10rem;
+  justify-self: center;
+  width: 100%;
+}
+.tabs button > span:first-child {
+  display: grid;
+  place-items: center;
+  width: 3.6rem;
+  height: 1.9rem;
+  border-radius: 999px;
+  transition: background 0.2s;
+}
+.tabs .ic {
+  width: 1.35rem;
+  height: 1.35rem;
+}
+.tabs button[aria-selected="true"] {
+  color: var(--ink);
+}
+.tabs button[aria-selected="true"] > span:first-child {
+  background: var(--harp-soft);
+  color: var(--harp);
+}
