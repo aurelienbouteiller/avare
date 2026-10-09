@@ -1,0 +1,90 @@
+/* ---------- Tailwind : ordre des couches, thème, utilitaires maison ---------- */
+/* legacy : anciennes feuilles en cours de conversion, sous les utilitaires pour que ceux-ci l'emportent. */
+@layer theme, base, legacy, components, utilities;
+@import "tailwindcss";
+
+/* Seules les couleurs, polices et animations de l'appli existent : pas de palette Tailwind par défaut. */
+@theme {
+  --color-*: initial;
+  --font-*: initial;
+  --animate-*: initial;
+
+  --animate-enter: enter 0.35s ease-out;
+  --animate-blink: blink 1s infinite;
+  --animate-eq: eq 0.9s ease-in-out infinite;
+  --animate-fill: fill linear forwards;
+  --animate-sheet: sheet 0.28s ease-out;
+
+  @keyframes enter {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0.3;
+    }
+  }
+  @keyframes eq {
+    0%,
+    100% {
+      height: 30%;
+    }
+    50% {
+      height: 100%;
+    }
+  }
+  @keyframes fill {
+    to {
+      width: 100%;
+    }
+  }
+  @keyframes sheet {
+    from {
+      transform: translateY(40px);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+}
+
+/* Couleurs du thème clair ou sombre (theme.css) : `inline` garde la variable, qui change avec le thème. */
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-harp: var(--harp);
+  --color-harp-soft: var(--harp-soft);
+  --color-fros: var(--fros);
+  --color-fros-soft: var(--fros-soft);
+  --color-curtain: var(--curtain);
+  --color-on-curtain: var(--on-curtain);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-ko: var(--ko);
+  --color-ko-soft: var(--ko-soft);
+  --font-serif: var(--serif);
+  --font-sans: var(--sans);
+  --shadow-card: var(--shadow);
+}
+
+/* Défilement horizontal sans barre visible (puces, frise, choix segmentés). */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

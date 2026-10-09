@@ -1,5 +1,5 @@
 /* ---------- écran Aujourd'hui : séance du jour, retard, maîtrise, programme ---------- */
-import { html, render as litRender, nothing } from 'lit-html';
+import { html, render as litRender, nothing } from 'lit';
 import { BLOCKS, PLAN } from '../data/scene';
 import { daysUntil, fmtDate, today } from '../domain/dates';
 import { mastery } from '../domain/stats';
@@ -61,7 +61,7 @@ function masteryTile(b: number) {
   const m = mastery(b, stats.value),
     label = BLOCKS[b].label;
   const ok = percent(m.ok, m.n);
-  return html`<button class="tile" data-act="go-block" data-b=${b} aria-label="${label} : ${m.ok} justes, ${m.ko} à revoir sur ${m.n}. Répéter ce bloc."><span class="ring" style="--p:${ok};--k:${percent(m.ko, m.n)}"><b>${ok}%</b></span>${label}</button>`;
+  return html`<button class="tile" data-act="go-block" data-b=${b} aria-label="${label} : ${m.ok} justes, ${m.ko} à revoir sur ${m.n}. Répéter ce bloc."><span class="gauge" style="--p:${ok};--k:${percent(m.ko, m.n)}"><b>${ok}%</b></span>${label}</button>`;
 }
 
 function masteryCard() {

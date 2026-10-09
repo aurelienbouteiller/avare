@@ -1,5 +1,5 @@
 /* ---------- écran Lire : la scène, bloc par bloc, réplique par réplique ---------- */
-import { html, render as litRender, nothing } from 'lit-html';
+import { html, render as litRender, nothing } from 'lit';
 import { blockLines, LINES } from '../data/scene';
 import { isHarpagon } from '../domain/lines';
 import { state } from '../state';

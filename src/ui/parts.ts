@@ -1,6 +1,6 @@
 /* ---------- morceaux de rendu partagés entre les écrans ---------- */
-import { html, nothing, type TemplateResult } from 'lit-html';
-import { join } from 'lit-html/directives/join.js';
+import { html, nothing, type TemplateResult } from 'lit';
+import { join } from 'lit/directives/join.js';
 import { BLOCKS, NOTES } from '../data/scene';
 import type { Mastery } from '../domain/stats';
 import { state } from '../state';

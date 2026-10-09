@@ -1,5 +1,5 @@
 /* ---------- boîte de réglages ---------- */
-import { html, render as litRender } from 'lit-html';
+import { html, render as litRender } from 'lit';
 import { frosineClip } from '../device/clips';
 import { RECORDED_VOICES, TTS } from '../device/platform';
 import { playClip } from '../device/player';

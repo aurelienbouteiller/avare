@@ -16,7 +16,9 @@ async function toNextH(page: Page) {
 test('enchaîne tout un bloc en vérification manuelle', async ({ page }) => {
   await page.goto('/');
   await dockButton(page, 'Commencer').click();
-  await expect(page.locator('body')).toHaveClass(/\brun\b/);
+  // Pendant la répétition, la barre de progression remplace les onglets.
+  await expect(page.locator('#runbar')).toBeVisible();
+  await expect(page.getByRole('tablist')).toBeHidden();
   for (let n = 1; n <= H1.length; n++) {
     await toNextH(page);
     await expect(page.locator('#runbar .count')).toHaveText(`Réplique ${n} sur ${H1.length}`);

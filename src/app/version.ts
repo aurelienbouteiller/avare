@@ -1,5 +1,5 @@
 /* ---------- version affichée dans les réglages (commit et date du build) ---------- */
-import { html, render as litRender } from 'lit-html';
+import { html, render as litRender } from 'lit';
 import { $ } from '../ui/dom';
 
 const REPO = 'https://github.com/aurelienbouteiller/avare';

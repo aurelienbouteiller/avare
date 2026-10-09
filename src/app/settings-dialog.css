@@ -1,157 +1,160 @@
 /* ---------- réglages : feuille qui monte du bas ---------- */
-dialog {
-  border: 0;
-  padding: 0 1.15rem calc(1.2rem + env(safe-area-inset-bottom, 0px));
-  background: var(--surface);
-  color: var(--ink);
-  width: 100%;
-  max-width: 34rem;
-  max-height: 88vh;
-  overflow: auto;
-  margin: auto auto 0;
-  border-radius: 22px 22px 0 0;
-  box-shadow: var(--shadow);
-}
-dialog[open] {
-  animation: sheet 0.28s ease-out;
-}
-@keyframes sheet {
-  from {
-    transform: translateY(40px);
-    opacity: 0;
-  }
-  to {
-    transform: none;
-    opacity: 1;
-  }
-}
-dialog::backdrop {
-  background: rgba(10, 4, 8, 0.6);
-}
-.dlghead {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  background: var(--surface);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 0 0.6rem;
-}
-.dlghead h2 {
-  font-family: var(--serif);
-  font-weight: 600;
-  margin: 0;
-  font-size: 1.45rem;
-}
-.group {
-  margin-top: 0.6rem;
-}
-.group h3 {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  margin: 0.8rem 0 0.2rem;
-}
-.group.danger {
-  margin-top: 1.4rem;
-}
-.field {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.8rem 0;
-  border-bottom: 1px solid var(--line);
-}
-.field.col {
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.5rem;
-}
-.field small {
-  display: block;
-  color: var(--muted);
-  font-size: 0.8rem;
-  margin-top: 0.1rem;
-  line-height: 1.35;
-}
-.field .val {
-  font-weight: 700;
-  color: var(--harp);
-}
-.segs.full {
-  width: 100%;
-}
-input[type="range"] {
-  width: 100%;
-  accent-color: var(--accent);
-}
-input.switch {
-  appearance: none;
-  -webkit-appearance: none;
-  margin: 0;
-  width: 2.9rem;
-  height: 1.7rem;
-  border-radius: 1rem;
-  background: var(--line);
-  position: relative;
-  flex: none;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-input.switch::after {
-  content: "";
-  position: absolute;
-  top: 3px;
-  left: 3px;
-  width: calc(1.7rem - 6px);
-  height: calc(1.7rem - 6px);
-  border-radius: 50%;
-  background: var(--surface);
-  transition: transform 0.2s;
-}
-input.switch:checked {
-  background: var(--accent);
-}
-input.switch:checked::after {
-  transform: translateX(1.2rem);
-}
-select {
-  font: inherit;
-  font-size: 0.92rem;
-  padding: 0.5rem;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: var(--bg);
-  color: var(--ink);
-  max-width: 12rem;
-}
-.tip {
-  font-size: 0.85rem;
-  color: var(--muted);
-  line-height: 1.5;
-  margin: 0.8rem 0 0;
-}
-.tip a {
-  color: inherit;
-  font-variant-numeric: tabular-nums;
-  text-underline-offset: 2px;
-}
-.dlgrow {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-.dlgrow .btn-s {
-  flex: 1 1 12rem;
-}
-
-@media (min-width: 46rem) {
+@layer legacy {
   dialog {
-    margin: auto;
-    border-radius: 22px;
+    border: 0;
+    padding: 0 1.15rem calc(1.2rem + env(safe-area-inset-bottom, 0px));
+    background: var(--surface);
+    color: var(--ink);
+    width: 100%;
+    max-width: 34rem;
+    max-height: 88vh;
+    overflow: auto;
+    margin: auto auto 0;
+    border-radius: 22px 22px 0 0;
+    box-shadow: var(--shadow);
+  }
+  dialog[open] {
+    animation: sheet 0.28s ease-out;
+  }
+  @keyframes sheet {
+    from {
+      transform: translateY(40px);
+      opacity: 0;
+    }
+    to {
+      transform: none;
+      opacity: 1;
+    }
+  }
+  dialog::backdrop {
+    background: rgba(10, 4, 8, 0.6);
+  }
+  .dlghead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    background: var(--surface);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0 0.6rem;
+  }
+  .dlghead h2 {
+    font-family: var(--serif);
+    font-weight: 600;
+    margin: 0;
+    font-size: 1.45rem;
+  }
+  .group {
+    margin-top: 0.6rem;
+  }
+  .group h3 {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0.8rem 0 0.2rem;
+  }
+  .group.danger {
+    margin-top: 1.4rem;
+  }
+  .field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .field.col {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .field small {
+    display: block;
+    color: var(--muted);
+    font-size: 0.8rem;
+    margin-top: 0.1rem;
+    line-height: 1.35;
+  }
+  .field .val {
+    font-weight: 700;
+    color: var(--harp);
+  }
+  .segs.full {
+    width: 100%;
+  }
+  input[type="range"] {
+    width: 100%;
+    margin: 2px;
+    accent-color: var(--accent);
+  }
+  input.switch {
+    appearance: none;
+    -webkit-appearance: none;
+    margin: 0;
+    width: 2.9rem;
+    height: 1.7rem;
+    border-radius: 1rem;
+    background: var(--line);
+    position: relative;
+    flex: none;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  input.switch::after {
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: calc(1.7rem - 6px);
+    height: calc(1.7rem - 6px);
+    border-radius: 50%;
+    background: var(--surface);
+    transition: transform 0.2s;
+  }
+  input.switch:checked {
+    background: var(--accent);
+  }
+  input.switch:checked::after {
+    transform: translateX(1.2rem);
+  }
+  select {
+    font: inherit;
+    font-size: 0.92rem;
+    padding: 0.5rem;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: var(--bg);
+    color: var(--ink);
+    max-width: 12rem;
+  }
+  .tip {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin: 0.8rem 0 0;
+  }
+  .tip a {
+    color: inherit;
+    font-variant-numeric: tabular-nums;
+    text-underline-offset: 2px;
+  }
+  .dlgrow {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+  }
+  .dlgrow .btn-s {
+    flex: 1 1 12rem;
+  }
+
+  @media (min-width: 46rem) {
+    dialog {
+      margin: auto;
+      border-radius: 22px;
+    }
   }
 }

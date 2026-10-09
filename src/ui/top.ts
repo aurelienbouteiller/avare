@@ -1,5 +1,5 @@
 /* ---------- en-tête : onglets, puces de bloc, ou barre de répétition ---------- */
-import { html, render as litRender, nothing } from 'lit-html';
+import { html, render as litRender, nothing } from 'lit';
 import { BLOCKS } from '../data/scene';
 import { isHarpagon } from '../domain/lines';
 import { mastery } from '../domain/stats';

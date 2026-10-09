@@ -1,6 +1,6 @@
 /* ---------- écran Répéter : préparation de la séance, puis répliques au fil de la répétition ---------- */
-import { html, render as litRender, nothing } from 'lit-html';
-import { keyed } from 'lit-html/directives/keyed.js';
+import { html, render as litRender, nothing } from 'lit';
+import { keyed } from 'lit/directives/keyed.js';
 import { BLOCKS, blockLines, LINES, MASKS, NOTES } from '../data/scene';
 import { canRecord, checkMode, SR } from '../device/platform';
 import { excerpt, isHarpagon } from '../domain/lines';

@@ -1,5 +1,5 @@
 /* ---------- dock d'actions : message d'état et boutons, selon l'écran et la phase ---------- */
-import { html, render as litRender, nothing, type TemplateResult } from 'lit-html';
+import { html, render as litRender, nothing, type TemplateResult } from 'lit';
 import { blockLines } from '../data/scene';
 import { canVoice } from '../device/platform';
 import { isHarpagon } from '../domain/lines';

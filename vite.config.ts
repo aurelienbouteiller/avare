@@ -1,4 +1,5 @@
 import { execSync } from 'node:child_process';
+import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vitest/config';
 import { clips } from './plugins/clips.ts';
@@ -21,6 +22,7 @@ export default defineConfig({
     __APP_BUILD_DATE__: JSON.stringify(new Date().toISOString()),
   },
   plugins: [
+    tailwindcss(),
     clips(),
     VitePWA({
       registerType: 'autoUpdate',

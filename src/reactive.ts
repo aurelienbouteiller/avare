@@ -22,30 +22,41 @@ export function reactive<T extends object>(initial: T): T {
 }
 
 /**
+ * Lance `run` en suivant les signaux qu'il lit, puis appelle `onChange` au premier changement de l'un d'eux.
+ * Une erreur dans `run` est signalée sans couper le suivi. Rend la fonction qui arrête le suivi.
+ */
+export function track(run: () => void, onChange: () => void) {
+  let first = true;
+  return effect(() => {
+    if (!first) {
+      onChange();
+      return;
+    }
+    first = false;
+    try {
+      run();
+    } catch (e) {
+      console.error(e);
+    }
+  });
+}
+
+/**
  * Lance `run` tout de suite, puis à chaque changement des signaux qu'il a lus. Les changements sont regroupés
  * jusqu'à la fin de la tâche en cours : une action qui écrit plusieurs champs ne relance `run` qu'une fois,
  * sur un état cohérent. Une erreur dans `run` est signalée sans couper le suivi : il repart au changement suivant.
  */
 export function watch(run: () => void) {
   let queued = false;
-  let dispose = () => {};
-  const track = () => {
+  let stop = () => {};
+  const again = () => {
     queued = false;
-    dispose();
-    let first = true;
-    dispose = effect(() => {
-      if (first) {
-        first = false;
-        try {
-          run();
-        } catch (e) {
-          console.error(e);
-        }
-      } else if (!queued) {
-        queued = true;
-        queueMicrotask(track);
-      }
+    stop();
+    stop = track(run, () => {
+      if (queued) return;
+      queued = true;
+      queueMicrotask(again);
     });
   };
-  track();
+  again();
 }
