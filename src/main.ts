@@ -17,13 +17,29 @@ import {
   say,
   sortedVoices,
   TTS,
-} from './audio.js';
-import { BLOCKS, PLAN } from './data/scene.js';
-import { engine, lockOff, playLine, playMine, playPassage, stop, stopSpeech } from './engine.js';
-import { IC } from './icons.js';
-import { $, esc, render } from './render.js';
-import { state } from './state.js';
-import { clearStats, dropUrl, idbClear, idbKeys, RECS, S, save, URLS } from './store.js';
+} from './audio';
+import { BLOCKS, PLAN } from './data/scene';
+import { engine, lockOff, playLine, playMine, playPassage, stop, stopSpeech } from './engine';
+import { IC } from './icons';
+import { $, esc, render } from './render';
+import { state } from './state';
+import { clearStats, dropUrl, idbClear, idbKeys, RECS, S, save, URLS } from './store';
+import {
+  BANKS,
+  type BeforeInstallPromptEvent,
+  CHECKS,
+  isOneOf,
+  MASK_IDS,
+  MODES,
+  ORDERS,
+  type Preset,
+  SRCS,
+  THEMES,
+  TOLS,
+} from './types';
+
+// Élément le plus proche de la cible d'un évènement délégué.
+const closest = (e: Event, sel: string) => (e.target as Element).closest<HTMLElement>(sel);
 
 /* ---------- thème ---------- */
 function applyTheme() {
@@ -32,22 +48,22 @@ function applyTheme() {
   if (t === 'auto') delete root.dataset.theme;
   else root.dataset.theme = t === 'clair' ? 'light' : 'dark';
   const dark = t === 'sombre' || (t === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
-  const meta = document.querySelector('meta[name=theme-color]');
+  const meta = document.querySelector<HTMLMetaElement>('meta[name=theme-color]');
   if (meta) meta.content = dark ? '#140B0F' : '#F7F1E6';
-  document.querySelectorAll('#optTheme [data-val]').forEach((b) => {
+  document.querySelectorAll<HTMLElement>('#optTheme [data-val]').forEach((b) => {
     b.setAttribute('aria-pressed', b.dataset.val === t ? 'true' : 'false');
   });
 }
 applyTheme();
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', applyTheme);
-document.querySelectorAll('[data-ic]').forEach((el) => {
-  el.insertAdjacentHTML('afterbegin', IC[el.dataset.ic] || '');
+document.querySelectorAll<HTMLElement>('[data-ic]').forEach((el) => {
+  el.insertAdjacentHTML('afterbegin', IC[el.dataset.ic as keyof typeof IC] || '');
 });
 
 /* ---------- interactions ---------- */
-document.querySelector('.tabs').addEventListener('click', (e) => {
-  const t = e.target.closest('[data-mode]');
-  if (!t) return;
+$('.tabs').addEventListener('click', (e) => {
+  const t = closest(e, '[data-mode]');
+  if (!t || !isOneOf(MODES, t.dataset.mode)) return;
   stop();
   S.mode = t.dataset.mode;
   save();
@@ -55,16 +71,16 @@ document.querySelector('.tabs').addEventListener('click', (e) => {
   window.scrollTo(0, 0);
 });
 $('#chips').addEventListener('click', (e) => {
-  const t = e.target.closest('[data-block]');
+  const t = closest(e, '[data-block]');
   if (!t) return;
   stop();
-  S.block = +t.dataset.block;
+  S.block = Number(t.dataset.block);
   S.only = false;
   save();
   render();
   t.scrollIntoView({ inline: 'nearest', block: 'nearest' });
 });
-function applyPreset(p) {
+function applyPreset(p: Preset) {
   stop();
   S.mode = p.mode || 'repeter';
   S.block = p.block || 0;
@@ -79,7 +95,7 @@ function applyPreset(p) {
   render();
   window.scrollTo(0, 0);
 }
-function act(a, el) {
+function act(a: string | undefined, el: HTMLElement) {
   if (a === 'start') engine.start();
   else if (a === 'stop') engine.stop();
   else if (a === 'skip') engine.next();
@@ -112,7 +128,7 @@ function act(a, el) {
   else if (a === 'go-block') {
     stop();
     S.mode = 'repeter';
-    S.block = +el.dataset.b;
+    S.block = Number(el.dataset.b);
     S.only = false;
     save();
     render();
@@ -129,11 +145,11 @@ function act(a, el) {
     stopSpeech();
     lockOff();
     render();
-  } else if (a === 'myrec') playMine(+el.dataset.i);
+  } else if (a === 'myrec') playMine(Number(el.dataset.i));
   else if (a === 'model') {
     stopSpeech();
     const tok = state.RUN;
-    playModelH(+el.dataset.i, tok);
+    playModelH(Number(el.dataset.i), tok);
   } else if (a === 'install' && state.INSTALL) {
     state.INSTALL.prompt();
     state.INSTALL.userChoice.finally(() => {
@@ -143,28 +159,29 @@ function act(a, el) {
   }
 }
 $('#row').addEventListener('click', (e) => {
-  const t = e.target.closest('[data-act]');
+  const t = closest(e, '[data-act]');
   if (t) act(t.dataset.act, t);
 });
 $('#runbar').addEventListener('click', (e) => {
-  const t = e.target.closest('[data-act]');
+  const t = closest(e, '[data-act]');
   if (t) act(t.dataset.act, t);
 });
 $('#script').addEventListener('click', (e) => {
-  const a = e.target.closest('[data-act]');
+  const a = closest(e, '[data-act]');
   if (a) {
     e.stopPropagation();
     act(a.dataset.act, a);
     return;
   }
-  const g = e.target.closest('[data-go]');
+  const g = closest(e, '[data-go]');
   if (g) {
-    const [d, k] = g.dataset.go.split(':').map(Number);
-    applyPreset(PLAN[d].go[k].p);
+    const [d = 0, k = 0] = (g.dataset.go ?? '').split(':').map(Number);
+    const p = PLAN[d]?.go[k]?.p;
+    if (p) applyPreset(p);
     return;
   }
-  const dn = e.target.closest('[data-done]');
-  if (dn) {
+  const dn = closest(e, '[data-done]');
+  if (dn?.dataset.done) {
     const d = dn.dataset.done;
     if (S.done[d]) delete S.done[d];
     else S.done[d] = true;
@@ -172,27 +189,32 @@ $('#script').addEventListener('click', (e) => {
     render();
     return;
   }
-  const o = e.target.closest('[data-opt]');
+  const o = closest(e, '[data-opt]');
   if (o) {
-    S[o.dataset.opt] = o.dataset.val;
+    setOpt(o.dataset.opt, o.dataset.val);
     save();
     render();
     return;
   }
   tapLine(e);
 });
-function tapLine(e) {
+function setOpt(k?: string, v?: string) {
+  if (k === 'mask' && isOneOf(MASK_IDS, v)) S.mask = v;
+  else if (k === 'order' && isOneOf(ORDERS, v)) S.order = v;
+  else if (k === 'check' && isOneOf(CHECKS, v)) S.check = v;
+}
+function tapLine(e: Event) {
   if (S.mode === 'lire') {
-    const ln = e.target.closest('.ln[data-i]');
+    const ln = closest(e, '.ln[data-i]');
     if (ln) {
       e.preventDefault();
-      playLine(+ln.dataset.i);
+      playLine(Number(ln.dataset.i));
     }
   } else if (S.mode === 'repeter') {
-    const ln = e.target.closest('.ln[data-p]');
+    const ln = closest(e, '.ln[data-p]');
     if (ln) {
       e.preventDefault();
-      engine.goTo(+ln.dataset.p);
+      engine.goTo(Number(ln.dataset.p));
     }
   }
 }
@@ -203,14 +225,14 @@ window.addEventListener('online', () => render());
 window.addEventListener('offline', () => render());
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
-  state.INSTALL = e;
+  state.INSTALL = e as BeforeInstallPromptEvent;
   if (S.mode === 'jour') render();
 });
 
 /* ---------- réglages ---------- */
-const dlg = $('#dlg');
+const dlg = $<HTMLDialogElement>('#dlg');
 function fillVoices() {
-  const sel = $('#optVoice');
+  const sel = $<HTMLSelectElement>('#optVoice');
   if (!sel) return;
   if (!TTS) {
     sel.innerHTML = '<option>Indisponible</option>';
@@ -234,17 +256,17 @@ function fillVoices() {
   $('#voiceInfo').textContent = 'Utilisée seulement en secours, si une voix enregistrée manque.';
 }
 function syncDlg() {
-  $('#optTts').checked = S.tts;
-  $('#optRate').value = S.rate;
+  $<HTMLInputElement>('#optTts').checked = S.tts;
+  $<HTMLInputElement>('#optRate').value = String(S.rate);
   $('#rateVal').textContent = `×${(+S.rate).toFixed(2)}`;
-  $('#optWild').checked = S.wild;
-  $('#optHands').checked = S.hands;
-  $('#optTol').value = S.tol || 'normale';
+  $<HTMLInputElement>('#optWild').checked = S.wild;
+  $<HTMLInputElement>('#optHands').checked = S.hands;
+  $<HTMLSelectElement>('#optTol').value = S.tol || 'normale';
   fillVoices();
   $('#fieldSrc').hidden = !REC;
   $('#fieldFv').hidden = !REC || S.src !== 'rec';
-  $('#optSrc').value = S.src;
-  $('#optFv').value = S.fv || 'F0';
+  $<HTMLSelectElement>('#optSrc').value = S.src;
+  $<HTMLSelectElement>('#optFv').value = S.fv || 'F0';
   $('#offlineInfo').textContent = state.OFFLINE_READY
     ? 'Disponible hors ligne : tout fonctionne sans réseau, sauf la vérification à la voix.'
     : 'Préparation du mode hors ligne au premier chargement.';
@@ -252,50 +274,52 @@ function syncDlg() {
 }
 $('#btnSettings').addEventListener('click', () => {
   syncDlg();
-  if (dlg.showModal) dlg.showModal();
-  else dlg.setAttribute('open', '');
+  dlg.showModal();
 });
 $('#btnClose').addEventListener('click', () => {
-  dlg.close ? dlg.close() : dlg.removeAttribute('open');
+  dlg.close();
 });
 dlg.addEventListener('close', () => render());
-$('#optTts').addEventListener('change', (e) => {
-  S.tts = e.target.checked;
+$<HTMLInputElement>('#optTts').addEventListener('change', (e) => {
+  S.tts = (e.target as HTMLInputElement).checked;
   save();
 });
-$('#optRate').addEventListener('input', (e) => {
-  S.rate = +e.target.value;
+$<HTMLInputElement>('#optRate').addEventListener('input', (e) => {
+  S.rate = Number((e.target as HTMLInputElement).value);
   $('#rateVal').textContent = `×${S.rate.toFixed(2)}`;
   save();
 });
-$('#optWild').addEventListener('change', (e) => {
-  S.wild = e.target.checked;
+$<HTMLInputElement>('#optWild').addEventListener('change', (e) => {
+  S.wild = (e.target as HTMLInputElement).checked;
   save();
 });
-$('#optHands').addEventListener('change', (e) => {
-  S.hands = e.target.checked;
+$<HTMLInputElement>('#optHands').addEventListener('change', (e) => {
+  S.hands = (e.target as HTMLInputElement).checked;
   save();
 });
 $('#optTol').addEventListener('change', (e) => {
-  S.tol = e.target.value;
+  const v = (e.target as HTMLSelectElement).value;
+  if (isOneOf(TOLS, v)) S.tol = v;
   save();
 });
 $('#optVoice').addEventListener('change', (e) => {
-  S.voice = e.target.value;
+  S.voice = (e.target as HTMLSelectElement).value;
   save();
 });
 $('#optSrc').addEventListener('change', (e) => {
-  S.src = e.target.value;
+  const v = (e.target as HTMLSelectElement).value;
+  if (isOneOf(SRCS, v)) S.src = v;
   save();
   syncDlg();
 });
 $('#optFv').addEventListener('change', (e) => {
-  S.fv = e.target.value;
+  const v = (e.target as HTMLSelectElement).value;
+  if (isOneOf(BANKS, v)) S.fv = v;
   save();
 });
 $('#optTheme').addEventListener('click', (e) => {
-  const t = e.target.closest('[data-val]');
-  if (!t) return;
+  const t = closest(e, '[data-val]');
+  if (!t || !isOneOf(THEMES, t.dataset.val)) return;
   S.theme = t.dataset.val;
   save();
   applyTheme();
@@ -321,7 +345,7 @@ $('#btnResetRec').addEventListener('click', async () => {
   if (confirm('Effacer tous tes enregistrements ?')) {
     await idbClear();
     RECS.clear();
-    for (const k of Object.keys(URLS)) dropUrl(k);
+    for (const k of Object.keys(URLS)) dropUrl(Number(k));
     render();
   }
 });
@@ -337,7 +361,7 @@ if (TTS) {
   }
 }
 if (!BLOCKS.some((b) => b.n === S.block)) S.block = 1;
-if (!['jour', 'lire', 'repeter'].includes(S.mode)) S.mode = 'jour';
+if (!isOneOf(MODES, S.mode)) S.mode = 'jour';
 idbKeys().then((ks) => {
   for (const k of ks) RECS.add(+k);
   render();

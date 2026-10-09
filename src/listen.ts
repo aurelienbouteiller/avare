@@ -1,15 +1,15 @@
-import { compare, fixNames } from './compare.js';
-import { LINES } from './data/scene.js';
-import { evaluate, handsTimer } from './engine.js';
-import { render, renderDock } from './render.js';
-import { state } from './state.js';
-import { S } from './store.js';
+import { compare, fixNames } from './compare';
+import { LINES } from './data/scene';
+import { evaluate, handsTimer } from './engine';
+import { render, renderDock } from './render';
+import { state } from './state';
+import { S } from './store';
 
 /* ---------- reconnaissance vocale ---------- */
-export const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+export const SR: typeof SpeechRecognition | undefined = window.SpeechRecognition || window.webkitSpeechRecognition;
 // Chrome Android renvoie en mode continu des résultats cumulatifs : chacun reprend toute la phrase depuis le début.
 const CUMULATIVE = /Android/i.test(navigator.userAgent);
-export function listen(i, tok) {
+export function listen(i: number, tok: number) {
   const L = LINES[i],
     t0 = Date.now(),
     words = L.t.split(/\s+/).length,
@@ -18,9 +18,9 @@ export function listen(i, tok) {
     sess = '',
     lastSpeech = Date.now() + 2500,
     done = false,
-    silenceT = null,
-    hardT = null,
-    r = null;
+    silenceT: ReturnType<typeof setTimeout> | undefined,
+    hardT: ReturnType<typeof setTimeout> | undefined,
+    r: SpeechRecognition | null = null;
   state.LISTENING = true;
   state.HEARD = '';
   renderDock();
@@ -43,12 +43,14 @@ export function listen(i, tok) {
     evaluate(i, said);
   };
   const open = () => {
-    r = new SR();
-    r.lang = 'fr-FR';
-    r.continuous = true;
-    r.interimResults = true;
-    r.maxAlternatives = 1;
-    r.onresult = (e) => {
+    if (!SR) return finish();
+    const rec = new SR();
+    r = rec;
+    rec.lang = 'fr-FR';
+    rec.continuous = true;
+    rec.interimResults = true;
+    rec.maxAlternatives = 1;
+    rec.onresult = (e) => {
       if (CUMULATIVE) sess = e.results[e.results.length - 1][0].transcript;
       else {
         sess = '';
@@ -61,7 +63,7 @@ export function listen(i, tok) {
       const sc = compare(L.t, state.HEARD).score;
       silenceT = setTimeout(finish, sc >= 0.97 ? 800 : 2300);
     };
-    r.onerror = (e) => {
+    rec.onerror = (e) => {
       if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
         end();
         state.LISTEN = null;
@@ -82,7 +84,7 @@ export function listen(i, tok) {
         }
       }
     };
-    r.onend = () => {
+    rec.onend = () => {
       if (done || tok !== state.RUN) return;
       prev = text();
       sess = '';
@@ -96,7 +98,7 @@ export function listen(i, tok) {
       } else finish();
     };
     try {
-      r.start();
+      rec.start();
     } catch {
       finish();
     }

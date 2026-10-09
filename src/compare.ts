@@ -1,5 +1,7 @@
 /* ---------- comparaison de la réplique dite ---------- */
-function numToFr(n) {
+import type { CompareResult } from './types';
+
+function numToFr(n: number): string {
   const u = [
     'zero',
     'un',
@@ -19,8 +21,8 @@ function numToFr(n) {
     'quinze',
     'seize',
   ];
-  const t = { 2: 'vingt', 3: 'trente', 4: 'quarante', 5: 'cinquante', 6: 'soixante' };
-  const lt100 = (n) => {
+  const t: Record<number, string> = { 2: 'vingt', 3: 'trente', 4: 'quarante', 5: 'cinquante', 6: 'soixante' };
+  const lt100 = (n: number): string => {
     if (n < 17) return u[n];
     if (n < 20) return `dix ${u[n - 10]}`;
     const d = Math.floor(n / 10),
@@ -30,7 +32,7 @@ function numToFr(n) {
     if (d === 8) return `quatre vingt${r === 0 ? 's' : ` ${u[r]}`}`;
     return `quatre vingt ${lt100(10 + r)}`;
   };
-  const lt1000 = (n) => {
+  const lt1000 = (n: number): string => {
     const c = Math.floor(n / 100),
       r = n % 100;
     let s = '';
@@ -46,10 +48,8 @@ function numToFr(n) {
   }
   return String(n);
 }
-function norm(s) {
-  s = String(s)
-    .toLowerCase()
-    .replace(/(\d)[\s\u00a0\u202f.](?=\d{3}\b)/g, '$1');
+function norm(input: string) {
+  let s = input.toLowerCase().replace(/(\d)[\s\u00a0\u202f.](?=\d{3}\b)/g, '$1');
   s = s.replace(/\d+/g, (m) => ` ${numToFr(+m)} `);
   s = s
     .normalize('NFD')
@@ -87,27 +87,27 @@ const HOMO = [
   ['soupe', 'soupent'],
   ['tantot', 'tantôt', 'tant', 'tot', 'tôt'],
 ];
-const HMAP = {};
+const HMAP: Record<string, number[]> = {};
 for (const [k, g] of HOMO.entries()) {
   for (const w of g) {
     HMAP[w] ??= [];
     HMAP[w].push(k);
   }
 }
-function lev(a, b) {
+function lev(a: string, b: string) {
   const m = a.length,
     n = b.length;
   if (!m) return n;
   if (!n) return m;
   let p = Array.from({ length: n + 1 }, (_, j) => j);
   for (let i = 1; i <= m; i++) {
-    const c = [i];
+    const c: number[] = [i];
     for (let j = 1; j <= n; j++) c[j] = Math.min(p[j] + 1, c[j - 1] + 1, p[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
     p = c;
   }
   return p[n];
 }
-function similar(a, b) {
+function similar(a: string, b: string) {
   if (a === b) return true;
   const ga = HMAP[a],
     gb = HMAP[b];
@@ -117,10 +117,10 @@ function similar(a, b) {
   if (L >= 4) return lev(a, b) <= 1;
   return false;
 }
-export function compare(expected, said) {
+export function compare(expected: string, said: string): CompareResult {
   const disp = expected.split(/\s+/).filter(Boolean);
-  const E = [],
-    own = [];
+  const E: string[] = [],
+    own: number[] = [];
   for (const [k, w] of disp.entries()) {
     for (const t of norm(w)) {
       E.push(t);
@@ -154,13 +154,13 @@ export function compare(expected, said) {
 }
 /* ---------- noms propres mal transcrits par la reconnaissance vocale ---------- */
 // Variantes explicites : un rapprochement approximatif changerait aussi « mariage » en Mariane.
-const NAMES = {
+const NAMES: Record<string, RegExp> = {
   Frosine:
     /\b(?:f?rosine|frozine|prosine|crosine|frosinne|frosyne|f?rau?zine|froz?ines?|frosines)\b|\bfro(?:id|s)? (?:zine|sine)\b/gi,
   Mariane: /\bmarie[ -]?anne\b|\bmarianne\b/gi,
 };
-export function fixNames(s) {
-  s = String(s);
-  for (const n in NAMES) s = s.replace(NAMES[n], n);
+export function fixNames(said: string) {
+  let s = said;
+  for (const [n, re] of Object.entries(NAMES)) s = s.replace(re, n);
   return s;
 }

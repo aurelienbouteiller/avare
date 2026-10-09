@@ -1,11 +1,13 @@
-import { render, renderDock } from './render.js';
-import { state } from './state.js';
-import { dropUrl, idbPut, RECS, S, save } from './store.js';
+import { render, renderDock } from './render';
+import { state } from './state';
+import { dropUrl, idbPut, RECS, S, save } from './store';
 
 /* ---------- enregistrement de ma voix ---------- */
-let MIC = null,
-  RECORDER = null;
-export async function startRecorder(i, tok) {
+let MIC: MediaStream | null = null,
+  RECORDER: MediaRecorder | null = null,
+  // Décidé à l'arrêt : garder l'enregistrement (réplique révélée) ou le jeter (séquence interrompue).
+  keepRec = false;
+export async function startRecorder(i: number, tok: number) {
   try {
     if (!MIC)
       MIC = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
@@ -17,13 +19,13 @@ export async function startRecorder(i, tok) {
     return;
   }
   if (tok !== state.RUN || state.phase !== 'await') return;
-  const chunks = [];
+  const chunks: Blob[] = [];
   const r = new MediaRecorder(MIC);
   RECORDER = r;
-  r._keep = false;
+  keepRec = false;
   state.REC_SAVED = new Promise((res) => {
     r.onstop = async () => {
-      if (r._keep && chunks.length) {
+      if (keepRec && chunks.length) {
         const blob = new Blob(chunks, { type: r.mimeType || 'audio/webm' });
         await idbPut(i, blob);
         RECS.add(i);
@@ -39,9 +41,9 @@ export async function startRecorder(i, tok) {
   state.RECORDING = true;
   renderDock();
 }
-export function stopRecorder(keep) {
+export function stopRecorder(keep: boolean) {
   if (RECORDER && RECORDER.state !== 'inactive') {
-    RECORDER._keep = keep;
+    keepRec = keep;
     RECORDER.stop();
   }
   RECORDER = null;

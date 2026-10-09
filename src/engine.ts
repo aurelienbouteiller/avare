@@ -1,14 +1,15 @@
-import { canVoice, playClip, playFrosineLine, playModelH, prefetch, stopClip, TTS, wait } from './audio.js';
-import { compare } from './compare.js';
-import { LINES, MASKS, TOL } from './data/scene.js';
-import { listen, SR } from './listen.js';
-import { releaseMic, startRecorder, stopRecorder } from './recorder.js';
-import { render, renderScript } from './render.js';
-import { state } from './state.js';
-import { isMissed, recUrl, S, STATS, save, today } from './store.js';
+import { canVoice, playClip, playFrosineLine, playModelH, prefetch, stopClip, TTS, wait } from './audio';
+import { compare } from './compare';
+import { LINES, MASKS, TOL } from './data/scene';
+import { listen, SR } from './listen';
+import { releaseMic, startRecorder, stopRecorder } from './recorder';
+import { render, renderScript } from './render';
+import { state } from './state';
+import { isMissed, recUrl, S, STATS, save, today } from './store';
+import { BANKS, type Line } from './types';
 
 /* ---------- écran allumé ---------- */
-let WL = null;
+let WL: WakeLockSentinel | null = null;
 export async function lockOn() {
   try {
     if ('wakeLock' in navigator && !WL) {
@@ -33,10 +34,10 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /* ---------- moteur de répétition ---------- */
-export function blockLines(b) {
+export function blockLines(b: number) {
   return LINES.map((_l, i) => i).filter((i) => b === 0 || LINES[i].b === b);
 }
-function shuffle(a) {
+function shuffle<T>(a: T[]) {
   for (let k = a.length - 1; k > 0; k--) {
     const j = Math.floor(Math.random() * (k + 1));
     [a[k], a[j]] = [a[j], a[k]];
@@ -50,11 +51,11 @@ function buildSeq() {
   if (S.order === 'hasard')
     return shuffle(hs.slice()).flatMap((i) => (i > 0 && LINES[i - 1].w === 'F' ? [i - 1, i] : [i]));
   if (!S.only) return ids;
-  const keep = new Set();
-  hs.forEach((i) => {
+  const keep = new Set<number>();
+  for (const i of hs) {
     keep.add(i);
     if (i > 0 && LINES[i - 1].w === 'F') keep.add(i - 1);
-  });
+  }
   return ids.filter((i) => keep.has(i));
 }
 export function checkMode() {
@@ -126,7 +127,7 @@ export function next() {
         rate = S.rate * (0.82 + Math.random() * 0.4);
         pitch = 0.96 + Math.random() * 0.1;
         pre = Math.random() * 1400;
-        bank = ['F0', 'F1', 'F2', 'F3'][Math.floor(Math.random() * 4)];
+        bank = BANKS[Math.floor(Math.random() * BANKS.length)];
       }
       wait(pre)
         .then(() => (tok === state.RUN ? playFrosineLine(L, i, tok, bank, rate, pitch) : false))
@@ -152,10 +153,10 @@ function beginH() {
     if (S.hands) handsTimer(L);
   }
 }
-export function handsTimer(L) {
+export function handsTimer(L: Line) {
   const words = L.t.split(/\s+/).length,
     ms = 1600 + (words * 450) / Math.max(S.rate, 0.7);
-  const bar = document.querySelector('.ln.cur .timer i');
+  const bar = document.querySelector<HTMLElement>('.ln.cur .timer i');
   if (bar) {
     bar.style.transitionDuration = `${ms}ms`;
     requestAnimationFrame(() =>
@@ -202,7 +203,7 @@ function reveal() {
     })();
   }
 }
-export function evaluate(i, said) {
+export function evaluate(i: number, said: string) {
   state.RESULT = compare(LINES[i].t, said);
   const ok = state.RESULT.score >= TOL[S.tol || 'normale'];
   record(ok);
@@ -222,7 +223,7 @@ export function evaluate(i, said) {
     })();
   }
 }
-function record(ok) {
+function record(ok: boolean) {
   const i = state.seq[state.pos];
   const st = STATS[i] || { ok: 0, ko: 0, last: '' };
   const prev = state.runMarks[state.pos],
@@ -249,7 +250,7 @@ function record(ok) {
   state.runMarks[state.pos] = st.last;
   save();
 }
-function judge(ok) {
+function judge(ok: boolean) {
   record(ok);
   next();
 }
@@ -274,7 +275,7 @@ function replay() {
   state.pos = j - 1;
   next();
 }
-function goTo(p) {
+function goTo(p: number) {
   if (p < 0 || p >= state.seq.length) return;
   state.pos = p - 1;
   next();
@@ -291,7 +292,7 @@ export const engine = { start, stop, next, reveal, hint, replay, retry, flip, ju
 /* ---------- lecture de passages (onglet Lire) ---------- */
 let passageMine = false;
 // from : réplique où commencer (ou reprendre) la lecture du passage.
-export async function playPassage(mine, from) {
+export async function playPassage(mine: boolean, from?: number) {
   stopSpeech();
   state.PASSAGE = true;
   passageMine = mine;
@@ -299,7 +300,7 @@ export async function playPassage(mine, from) {
   lockOn();
   render();
   const ids = blockLines(S.block);
-  for (let k = Math.max(0, ids.indexOf(from)); k < ids.length; k++) {
+  for (let k = from === undefined ? 0 : Math.max(0, ids.indexOf(from)); k < ids.length; k++) {
     const i = ids[k];
     if (tok !== state.RUN) break;
     state.playingIdx = i;
@@ -322,7 +323,7 @@ export async function playPassage(mine, from) {
     render();
   }
 }
-export async function playLine(i) {
+export async function playLine(i: number) {
   if (state.PASSAGE) {
     playPassage(passageMine, i);
     return;
@@ -344,7 +345,7 @@ export async function playLine(i) {
     render();
   }
 }
-export async function playMine(i) {
+export async function playMine(i: number) {
   stopSpeech();
   const url = await recUrl(i);
   if (!url) return;

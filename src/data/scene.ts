@@ -1,5 +1,7 @@
 /* ---------- texte de la scène, blocs, notes de jeu et plan de répétition ---------- */
-export const RAW = [
+import type { Block, Line, Mask, Note, PlanDay, RawEntry, Seg, Tol } from '../types';
+
+export const RAW: readonly RawEntry[] = [
   1,
   ['H', "Tout va comme il faut. Hé bien, qu'est-ce, Frosine ?"],
   ['F', 'Ah, mon Dieu ! Que vous vous portez bien ! Et que vous avez là un vrai visage de santé !'],
@@ -166,7 +168,7 @@ export const RAW = [
   ],
 ];
 
-export const BLOCKS = [
+export const BLOCKS: readonly Block[] = [
   { n: 0, label: 'Scène entière', short: 'La scène' },
   { n: 1, label: '1. Ta santé', short: 'Ta santé' },
   { n: 2, label: '2. Le souper', short: 'Le souper' },
@@ -175,7 +177,7 @@ export const BLOCKS = [
   { n: 5, label: '5. Ton physique', short: 'Ton physique' },
   { n: 6, label: "6. L'esquive", short: "L'esquive" },
 ];
-export const NOTES = {
+export const NOTES: Record<number, Note> = {
   0: {
     obj: "Harpagon croit mener la négociation, mais c'est Frosine qui la mène.",
     jeu: 'Il avale toutes les flatteries sans méfiance, sauf quand on touche à son argent : là, il redevient lucide et dur.',
@@ -205,7 +207,7 @@ export const NOTES = {
     jeu: "Visage sévère dès qu'elle parle d'argent, gai dès qu'elle parle de Mariane. Ses répliques sont des fuites de plus en plus pressées jusqu'à la sortie.",
   },
 };
-export const PLAN = [
+export const PLAN: readonly PlanDay[] = [
   {
     d: '2026-10-04',
     t: 'Découverte',
@@ -307,30 +309,30 @@ export const PLAN = [
     go: [{ l: 'Relecture', p: { mode: 'lire', block: 0 } }],
   },
 ];
-export const MASKS = [
+export const MASKS: readonly (readonly [Mask, string])[] = [
   ['coins', 'Pièces'],
   ['initiales', 'Initiales'],
   ['moitie', 'Un mot sur deux'],
   ['visible', 'Visible'],
 ];
-export const TOL = { stricte: 0.95, normale: 0.85, souple: 0.7 };
+export const TOL: Record<Tol, number> = { stricte: 0.95, normale: 0.85, souple: 0.7 };
 
-function parseSegs(t) {
+function parseSegs(t: string): Seg[] {
   return t
     .split(/(\{[^}]+\})/)
     .map((s) => s.trim())
     .filter(Boolean)
     .map((s) => (s[0] === '{' ? { d: s.slice(1, -1) } : { t: s }));
 }
-export const LINES = [];
+export const LINES: Line[] = [];
 (() => {
   let cb = 1;
-  RAW.forEach((r) => {
+  for (const r of RAW) {
     if (typeof r === 'number') {
       cb = r;
-      return;
+      continue;
     }
     const [w, t, flag] = r;
     LINES.push({ w, t, b: cb, end: flag === 'fin', segs: w === 'F' ? parseSegs(t) : null });
-  });
+  }
 })();

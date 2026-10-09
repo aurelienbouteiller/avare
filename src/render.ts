@@ -1,26 +1,29 @@
-import { canVoice } from './audio.js';
-import { BLOCKS, LINES, MASKS, NOTES, PLAN } from './data/scene.js';
-import { blockLines, checkMode } from './engine.js';
-import { EQ, IC } from './icons.js';
-import { SR } from './listen.js';
-import { state } from './state.js';
-import { fmtDate, isMissed, RECS, S, STATS, today } from './store.js';
+import { canVoice } from './audio';
+import { BLOCKS, LINES, MASKS, NOTES, PLAN } from './data/scene';
+import { blockLines, checkMode } from './engine';
+import { EQ, IC } from './icons';
+import { SR } from './listen';
+import { state } from './state';
+import { fmtDate, isMissed, RECS, S, STATS, today } from './store';
+import type { CompareResult, Line, Mask, Phase, Settings } from './types';
 
 /* ---------- rendu ---------- */
-export function markSeg(k) {
-  document.querySelectorAll('.ln.cur [data-seg], .ln.playing [data-seg]').forEach((el) => {
-    el.classList.toggle('now', +el.dataset.seg === k);
+export function markSeg(k: number) {
+  document.querySelectorAll<HTMLElement>('.ln.cur [data-seg], .ln.playing [data-seg]').forEach((el) => {
+    el.classList.toggle('now', Number(el.dataset.seg) === k);
   });
 }
-export const $ = (s) => document.querySelector(s);
-export function esc(s) {
-  return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+// Éléments fixes de index.html : toujours présents.
+export const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
+const ESC: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
+export function esc(s: string | number) {
+  return String(s).replace(/[&<>"]/g, (c) => ESC[c] ?? c);
 }
-const plural = (n, w) => `${n} ${w}${n > 1 ? 's' : ''}`;
-const RUN_PHASES = ['frosine', 'await', 'check', 'done'];
+const plural = (n: number, w: string) => `${n} ${w}${n > 1 ? 's' : ''}`;
+const RUN_PHASES: Phase[] = ['frosine', 'await', 'check', 'done'];
 const inRun = () => S.mode === 'repeter' && RUN_PHASES.includes(state.phase);
 
-function masked(t, mode) {
+function masked(t: string, mode: Mask) {
   if (mode === 'visible') return esc(t);
   return t
     .split(/\s+/)
@@ -28,10 +31,8 @@ function masked(t, mode) {
     .map((w, k) => {
       const m = w.match(/^([«"(]*)([\p{L}\p{N}][\p{L}\p{N}'’-]*)(.*)$/u);
       if (!m) return esc(w);
-      const pre = m[1],
-        word = m[2],
-        post = m[3],
-        n = word.length;
+      const [, pre = '', word = '', post = ''] = m;
+      const n = word.length;
       if (mode === 'coins') return `<span class="coin" style="--n:${Math.min(n, 12)}"></span>`;
       if (mode === 'initiales')
         return (
@@ -47,16 +48,16 @@ function masked(t, mode) {
     })
     .join(' ');
 }
-function fText(L) {
-  return L.segs
+function fText(L: Line) {
+  return (L.segs ?? [])
     .map((s, k) =>
-      s.d
+      s.d !== undefined
         ? `<span class="dida" data-seg="${k}">${esc(s.d)}</span>`
         : `<span class="seg-t" data-seg="${k}">${esc(s.t)}</span>`,
     )
     .join(' ');
 }
-function exitNote(L) {
+function exitNote(L: Line) {
   return L.end ? `<div class="exit">Harpagon sort. Frosine reste seule.</div>` : '';
 }
 // Notes de jeu ouvertes dans Lire : gardées ouvertes quand le texte est redessiné.
@@ -65,37 +66,38 @@ document.addEventListener(
   'toggle',
   (e) => {
     const d = e.target;
-    if (d.dataset?.note) d.open ? openNotes.add(d.dataset.note) : openNotes.delete(d.dataset.note);
+    if (d instanceof HTMLDetailsElement && d.dataset.note)
+      d.open ? openNotes.add(d.dataset.note) : openNotes.delete(d.dataset.note);
   },
   true,
 );
-function blockHead(b, full) {
+function blockHead(b: number, full: boolean) {
   const n = NOTES[b],
     B = BLOCKS[b];
   if (!full) return `<div class="bhead slim"><b>${esc(B.label)}</b><span class="obj">${esc(n.obj)}</span></div>`;
   return `<div class="bhead"><div class="bnum">Bloc ${b} sur 6</div><h2>${esc(B.short)}</h2><p class="obj">Objectif : ${esc(n.obj)}</p>
     <details data-note="${b}"${openNotes.has(String(b)) ? ' open' : ''}><summary>Note de jeu</summary><p>${esc(n.jeu)}</p></details></div>`;
 }
-function resultHtml(res) {
+function resultHtml(res: CompareResult) {
   const words = res.disp.map((w, k) => (res.dispOk[k] ? esc(w) : `<span class="miss">${esc(w)}</span>`)).join(' ');
   return `${words}<span class="heard">${res.said ? `Tu as dit : « ${esc(res.said)} »` : "Je n'ai rien entendu."}</span>`;
 }
-function mastery(b) {
+function mastery(b: number) {
   const hs = LINES.map((_l, i) => i).filter((i) => LINES[i].w === 'H' && (b === 0 || LINES[i].b === b));
-  const ok = hs.filter((i) => STATS[i] && STATS[i].last === 'ok').length,
-    ko = hs.filter((i) => STATS[i] && STATS[i].last === 'ko').length;
+  const ok = hs.filter((i) => STATS[i]?.last === 'ok').length,
+    ko = hs.filter((i) => STATS[i]?.last === 'ko').length;
   return { n: hs.length, ok, ko };
 }
-function mbar(m) {
+function mbar(m: { n: number; ok: number; ko: number }) {
   return `<span class="mbar"><span class="g" style="width:${(100 * m.ok) / m.n}%"></span><span class="r" style="width:${(100 * m.ko) / m.n}%"></span></span>`;
 }
-const cap = (s) => s.replace(/^./, (c) => c.toUpperCase());
+const cap = (s: string) => s.replace(/^./, (c) => c.toUpperCase());
 
 /* ---------- en-tête : puces de bloc, ou barre de répétition ---------- */
 function renderTop() {
   const run = inRun();
   document.body.classList.toggle('run', run);
-  document.querySelectorAll('.tabs button').forEach((b) => {
+  document.querySelectorAll<HTMLElement>('.tabs button').forEach((b) => {
     b.setAttribute('aria-selected', b.dataset.mode === S.mode ? 'true' : 'false');
   });
   const chips = $('#chips'),
@@ -127,9 +129,9 @@ function renderTop() {
 }
 
 /* ---------- Aujourd'hui ---------- */
-const STANDALONE = window.matchMedia && matchMedia('(display-mode: standalone)').matches;
-function daysTo(d) {
-  return Math.round((new Date(`${d}T12:00:00`) - new Date(`${today()}T12:00:00`)) / 864e5);
+const STANDALONE = matchMedia('(display-mode: standalone)').matches;
+function daysTo(d: string) {
+  return Math.round((Date.parse(`${d}T12:00:00`) - Date.parse(`${today()}T12:00:00`)) / 864e5);
 }
 function renderJour() {
   const td = today();
@@ -195,7 +197,7 @@ function renderJour() {
   h += '</div>';
   $('#script').innerHTML = h;
   const strip = $('#strip'),
-    now = strip?.querySelector('.now');
+    now = strip.querySelector<HTMLElement>('.now');
   if (now) strip.scrollLeft = now.offsetLeft - strip.offsetLeft - strip.clientWidth / 2 + now.offsetWidth / 2;
 }
 
@@ -204,7 +206,7 @@ function optsHtml() {
   const sr = !!SR,
     mr = !!(navigator.mediaDevices && window.MediaRecorder),
     off = navigator.onLine === false;
-  const seg = (k, v, l, dis) =>
+  const seg = (k: keyof Pick<Settings, 'mask' | 'order' | 'check'>, v: string, l: string, dis?: boolean) =>
     `<button class="seg" data-opt="${k}" data-val="${v}" aria-pressed="${S[k] === v}"${dis ? ' disabled' : ''}>${l}</button>`;
   const maskHelp =
     {
@@ -260,7 +262,7 @@ function renderRepeter() {
   for (let p = 0; p <= upto; p++) {
     const i = state.seq[p],
       L = LINES[i],
-      prev = p > 0 ? state.seq[p - 1] : null;
+      prev = p > 0 ? state.seq[p - 1] : -1;
     const cur = p === state.pos && state.phase !== 'done';
     const cue = curH && p === state.pos - 1 && L.w === 'F' && i === state.seq[state.pos] - 1;
     if (p > 0 && prev !== i - 1) h += `<div class="exit">…</div>`;
@@ -279,7 +281,7 @@ function renderRepeter() {
     const mark = rm
       ? `<span class="mark ${rm}">${rm === 'ok' ? `${IC.check}juste` : `${IC.cross}à revoir`}</span>`
       : '';
-    let body;
+    let body: string;
     if (cur && state.phase === 'await') {
       body = masked(L.t, state.curMask);
       if (state.LISTENING || checkMode() === 'voix')
@@ -297,7 +299,7 @@ function renderRepeter() {
   if (state.phase === 'done') {
     const tot = state.runRes.ok + state.runRes.ko;
     const ko = state.seq.filter((_i, p) => state.runMarks[p] === 'ko');
-    const start = (t) => {
+    const start = (t: string) => {
       const w = t.split(/\s+/);
       return w.slice(0, 8).join(' ') + (w.length > 8 ? '…' : '');
     };
@@ -319,7 +321,7 @@ function renderRepeter() {
 }
 
 /* ---------- Lire ---------- */
-function renderLire(scrollToPlaying) {
+function renderLire(scrollToPlaying?: boolean) {
   const ids = blockLines(S.block);
   let h = '';
   ids.forEach((i, k) => {
@@ -341,14 +343,15 @@ function renderLire(scrollToPlaying) {
     if (c) c.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
 }
-export function renderScript(scroll) {
+export function renderScript(scroll?: boolean) {
   if (S.mode === 'jour') renderJour();
   else if (S.mode === 'lire') renderLire(scroll);
   else renderRepeter();
 }
 
 /* ---------- dock d'actions ---------- */
-const side = (act, ic, l) => `<button class="btn side" data-act="${act}">${ic}<span>${l}</span></button>`;
+const side = (act: string, ic: string, l: string) =>
+  `<button class="btn side" data-act="${act}">${ic}<span>${l}</span></button>`;
 export function renderDock() {
   const dock = $('#dock'),
     st = $('#status'),

@@ -1,6 +1,8 @@
 /* ---------- état d'exécution partagé entre les modules ---------- */
+import type { RuntimeState } from './types';
+
 // Un objet plutôt que des `let` exportés : les liaisons ES importées ne sont pas réassignables.
-export const state = {
+export const state: RuntimeState = {
   RUN: 0,
   seq: [],
   pos: -1,
@@ -8,7 +10,7 @@ export const state = {
   curMask: 'coins',
   runRes: { ok: 0, ko: 0 },
   runMarks: {},
-  timerId: null,
+  timerId: undefined,
   playingIdx: -1,
   RESULT: null,
   NOTICE: '',

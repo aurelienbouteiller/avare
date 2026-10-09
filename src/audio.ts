@@ -1,13 +1,14 @@
 import CLIPS from './data/clips.json';
-import { LINES } from './data/scene.js';
-import { markSeg } from './render.js';
-import { state } from './state.js';
-import { S } from './store.js';
+import { LINES } from './data/scene';
+import { markSeg } from './render';
+import { state } from './state';
+import { S } from './store';
+import type { Line } from './types';
 
 /* ---------- voix du téléphone ---------- */
 export const TTS = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
-let VOICES = [];
-export function loadVoices(onChange) {
+let VOICES: SpeechSynthesisVoice[] = [];
+export function loadVoices(onChange: () => void) {
   if (!TTS) return;
   VOICES = speechSynthesis.getVoices().filter((v) => (v.lang || '').toLowerCase().replace('_', '-').startsWith('fr'));
   onChange();
@@ -15,7 +16,7 @@ export function loadVoices(onChange) {
 export function hasVoices() {
   return VOICES.length > 0;
 }
-function voiceScore(v) {
+function voiceScore(v: SpeechSynthesisVoice) {
   const n = (v.name || '').toLowerCase();
   let s = 0;
   if (/fr[-_]fr/i.test(v.lang)) s += 20;
@@ -32,7 +33,7 @@ export function pickVoice() {
   if (!VOICES.length) return null;
   return VOICES.find((v) => v.voiceURI === S.voice) || sortedVoices()[0];
 }
-function chunk(t) {
+function chunk(t: string) {
   return t
     .split(/(?<=[.!?…;:])\s+/)
     .filter(Boolean)
@@ -43,10 +44,10 @@ function chunk(t) {
       return { t: p, pause };
     });
 }
-function sayOne(text, rate, pitch) {
-  return new Promise((res) => {
+function sayOne(text: string, rate: number, pitch: number) {
+  return new Promise<void>((res) => {
     let done = false,
-      tm = null;
+      tm: ReturnType<typeof setTimeout> | undefined;
     const fin = () => {
       if (done) return;
       done = true;
@@ -69,8 +70,8 @@ function sayOne(text, rate, pitch) {
     }
   });
 }
-export const wait = (ms) => new Promise((r) => setTimeout(r, ms));
-export async function say(text, rate, pitch, tok) {
+export const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+export async function say(text: string, rate: number, pitch: number, tok: number) {
   const cs = chunk(text);
   for (let k = 0; k < cs.length; k++) {
     if (tok !== state.RUN) return false;
@@ -81,23 +82,25 @@ export async function say(text, rate, pitch, tok) {
 }
 
 /* ---------- voix enregistrées (public/audio/<voix>/L<ligne>_S<segment>.mp3) ---------- */
-const HAS = Object.fromEntries(Object.entries(CLIPS).map(([b, ids]) => [b, new Set(ids)]));
-export const REC = !!(HAS.F0 && HAS.F0.size > 0);
+const HAS: Record<string, Set<string>> = Object.fromEntries(
+  Object.entries(CLIPS as Record<string, string[]>).map(([b, ids]) => [b, new Set(ids)]),
+);
+export const REC = (HAS.F0?.size ?? 0) > 0;
 export const useRec = () => REC && S.src === 'rec';
 export const canVoice = () => S.tts && (useRec() || TTS);
-function hasClip(bank, id) {
+function hasClip(bank: string, id: string) {
   return !!HAS[bank]?.has(id);
 }
 // Chaque clip est chargé une fois en Blob : lecture immédiate, et pas de requêtes Range
 // (mal gérées par Safari iOS quand la réponse vient du service worker).
-const BLOBS = new Map();
-function loadClip(bank, id) {
+const BLOBS = new Map<string, Promise<string | null>>();
+function loadClip(bank: string, id: string): Promise<string | null> {
   if (!hasClip(bank, id)) return Promise.resolve(null);
   const key = `${bank}/${id}`;
   if (!BLOBS.has(key)) {
     const p = fetch(`${import.meta.env.BASE_URL}audio/${key}.mp3`)
       .then((r) => {
-        if (!r.ok) throw new Error(r.status);
+        if (!r.ok) throw new Error(String(r.status));
         return r.blob();
       })
       .then((b) => URL.createObjectURL(b))
@@ -107,39 +110,40 @@ function loadClip(bank, id) {
       });
     BLOBS.set(key, p);
   }
-  return BLOBS.get(key);
+  return BLOBS.get(key) ?? Promise.resolve(null);
 }
-function frosineClip(bank, id) {
+function frosineClip(bank: string, id: string) {
   return loadClip(hasClip(bank, id) ? bank : 'F0', id);
 }
 export function frosineTestClip() {
   return useRec() ? frosineClip(S.fv || 'F0', 'L1_S0') : Promise.resolve(null);
 }
 // Précharge les clips des prochaines répliques pendant que la réplique courante est jouée.
-export function prefetch(idxs, bank) {
+export function prefetch(idxs: number[], bank: string) {
   if (!useRec()) return;
-  idxs.forEach((i) => {
+  for (const i of idxs) {
     const L = LINES[i];
-    if (!L) return;
+    if (!L) continue;
     if (L.w === 'H') loadClip('H0', `L${i}_S0`);
     else
-      L.segs.forEach((s, k) => {
-        if (!s.d) frosineClip(bank, `L${i}_S${k}`);
-      });
-  });
+      for (const [k, s] of (L.segs ?? []).entries()) {
+        if (s.d === undefined) frosineClip(bank, `L${i}_S${k}`);
+      }
+  }
 }
 
-const PLAYER = new Audio();
+// Préfixes encore utilisés par d'anciens Firefox et Safari.
+const PLAYER: HTMLAudioElement & { mozPreservesPitch?: boolean; webkitPreservesPitch?: boolean } = new Audio();
 PLAYER.preload = 'auto';
-export function playClip(src, rate, tok) {
-  return new Promise((res) => {
+export function playClip(src: string, rate: number, tok: number) {
+  return new Promise<boolean>((res) => {
     if (tok !== state.RUN) {
       res(false);
       return;
     }
     let done = false,
-      tm = null;
-    const fin = (ok) => {
+      tm: ReturnType<typeof setTimeout> | undefined;
+    const fin = (ok: boolean) => {
       if (done) return;
       done = true;
       clearTimeout(tm);
@@ -163,8 +167,7 @@ export function playClip(src, rate, tok) {
       }
     };
     tm = setTimeout(() => fin(true), 90000);
-    const pr = PLAYER.play();
-    if (pr?.catch) pr.catch(() => fin(true));
+    PLAYER.play().catch(() => fin(true));
   });
 }
 export function stopClip() {
@@ -173,19 +176,19 @@ export function stopClip() {
     PLAYER.onended = PLAYER.onerror = null;
   } catch {}
 }
-export async function playModelH(i, tok) {
+export async function playModelH(i: number, tok: number) {
   const hs = useRec() ? await loadClip('H0', `L${i}_S0`) : null;
   if (hs) return playClip(hs, S.rate, tok);
   if (TTS) return say(LINES[i].t, 0.95 * S.rate, 0.9, tok);
   await wait(2000);
   return tok === state.RUN;
 }
-export async function playFrosineLine(L, i, tok, bank, rate, pitch) {
-  for (let k = 0; k < L.segs.length; k++) {
+export async function playFrosineLine(L: Line, i: number, tok: number, bank: string, rate: number, pitch: number) {
+  const segs = L.segs ?? [];
+  for (const [k, s] of segs.entries()) {
     if (tok !== state.RUN) return false;
     markSeg(k);
-    const s = L.segs[k];
-    if (s.d) {
+    if (s.d !== undefined) {
       await wait(1700 / Math.max(rate, 0.6));
       continue;
     }
