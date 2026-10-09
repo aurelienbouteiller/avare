@@ -258,18 +258,14 @@ function doneCard() {
       ${ko.length ? html`<p class="muted">À revoir :</p><ul class="missed">${ko.map((i) => html`<li>${start(LINES[i].t)}</li>`)}</ul>` : tot ? html`<p>Sans faute. Bravo !</p>` : nothing}
       ${checkMode() === 'rec' || S.check === 'rec' ? html`<p class="muted">Réécoute tes enregistrements dans Lire, avec « Ma voix ».</p>` : nothing}</section>`;
 }
-let animPos = -1; // l'animation d'entrée ne joue qu'à l'arrivée d'une nouvelle réplique
 function renderRepeter() {
   const el = $('#script');
   if (state.phase === 'idle' || state.phase === 'empty') {
-    animPos = -1;
     litRender(setup(), el);
     return;
   }
   const upto = state.phase === 'done' ? state.seq.length - 1 : state.pos;
   const curH = state.phase !== 'done' && LINES[state.seq[state.pos]].w === 'H';
-  const fresh = state.pos !== animPos;
-  animPos = state.pos;
   const out: View[] = [];
   for (let p = 0; p <= upto; p++) {
     const i = state.seq[p],
@@ -280,7 +276,9 @@ function renderRepeter() {
     if (p > 0 && prev !== i - 1) out.push(html`<div class="exit">…</div>`);
     if (S.order !== 'hasard' && (p === 0 || LINES[prev].b !== L.b)) out.push(blockHead(L.b, false));
     out.push(exitNote(L));
-    const cls = `ln ${L.w}${cur ? ` cur${fresh ? ' fresh' : ''}` : `${cue ? ' cue' : ' past'} tap`}`;
+    // « fresh » : animation d'entrée. lit crée un nœud neuf quand la réplique courante change (template différent
+    // ou réplique ajoutée) et garde le même nœud sinon : l'animation ne joue qu'une fois par réplique.
+    const cls = `ln ${L.w}${cur ? ' cur fresh' : `${cue ? ' cue' : ' past'} tap`}`;
     // Réplique déjà passée : la toucher reprend la répétition à cet endroit.
     const back = cur ? undefined : `Reprendre à cette réplique de ${L.w === 'H' ? 'Harpagon' : 'Frosine'}`;
     const attrs = (body: unknown) =>

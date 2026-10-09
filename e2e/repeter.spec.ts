@@ -81,3 +81,29 @@ test('garde les réglages de séance', async ({ page }) => {
   await page.reload();
   await expect(page.locator('[data-opt="mask"][aria-pressed="true"]')).toHaveText('Initiales');
 });
+
+test.describe('avec la voix de Frosine', () => {
+  test.use({ saved: { s: { mode: 'repeter', block: 1, check: 'manual', tts: true, src: 'rec' } } });
+
+  test('laisse finir l’animation d’entrée pendant que Frosine parle, sans la rejouer ensuite', async ({ page }) => {
+    await page.goto('/');
+    await dockButton(page, 'Commencer').click();
+    await dockButton(page, 'Révéler').click();
+    await dockButton(page, "Je l'avais").click();
+    // Réplique de Frosine : le surlignage du segment lu redessine la réplique pendant son animation d'entrée.
+    const cur = page.locator('.ln.cur.F');
+    await expect(cur).toBeVisible();
+    const anim = await cur.evaluateHandle((el) => el.getAnimations()[0]);
+    await expect.poll(() => anim.evaluate((a) => a?.playState)).toBe('finished');
+    await expect(cur).toHaveClass(/\bfresh\b/);
+
+    // Réplique d'Harpagon : un indice redessine la réplique sans rejouer l'animation.
+    await dockButton(page, 'Passer').click();
+    await expect(dockButton(page, 'Révéler')).toBeVisible();
+    const h = page.locator('.ln.cur.H');
+    await expect.poll(() => h.evaluate((el) => el.getAnimations().length)).toBe(0);
+    await dockButton(page, 'Indice').click();
+    await expect(h.locator('.ini').first()).toBeVisible();
+    expect(await h.evaluate((el) => el.getAnimations().length)).toBe(0);
+  });
+});
