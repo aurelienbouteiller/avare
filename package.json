@@ -15,12 +15,14 @@
     "format": "biome check --write",
     "test": "vitest run",
     "check": "biome ci && npm run typecheck && vitest run",
-    "prepare": "simple-git-hooks"
+    "prepare": "simple-git-hooks",
+    "e2e": "playwright test"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
     "@fontsource/archivo": "^5.3.0",
     "@fontsource/spectral": "^5.3.0",
+    "@playwright/test": "1.64.0",
     "@types/dom-speech-recognition": "0.0.12",
     "@types/node": "24.19.1",
     "simple-git-hooks": "2.14.0",
