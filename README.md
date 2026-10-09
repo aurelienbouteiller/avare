@@ -53,10 +53,8 @@ Pour ajouter ou remplacer un clip, dépose simplement le MP3 dans `public/audio/
 
 ## Déploiement
 
-Le site est entièrement statique. HTTPS est obligatoire (micro, service worker), ce que fournissent les deux plateformes.
+Le site est entièrement statique. HTTPS est obligatoire (micro, service worker), ce que fournit Cloudflare.
 
 **Cloudflare Workers** (hébergement principal) : Worker `souffleur-harpagon`, servi sur https://souffleur-harpagon.jartek33.workers.dev et relié au dépôt GitHub (Workers Builds) : chaque push sur `main` redéploie. `wrangler.jsonc` publie simplement `dist/` comme fichiers statiques. Pour le recréer : Workers & Pages → Create → Import a repository → `aurelienbouteiller/avare`, commande de build `npm run build`, commande de déploiement `npx wrangler deploy`, variables de build `NODE_VERSION=24` et `SKIP_INSTALL_SIMPLE_GIT_HOOKS=1`. Le commit affiché dans les réglages vient de `WORKERS_CI_COMMIT_SHA`.
 
-**Netlify** (ancien hébergement, conservé pendant la transition) : `netlify.toml` fixe la commande (`npm run build`), le dossier publié (`dist`) et la version de Node.
-
-Dans les deux cas, `public/_headers` règle le cache : fichiers hashés de `assets/` en cache permanent, `index.html` et `sw.js` toujours revalidés pour que les mises à jour arrivent tout de suite.
+`public/_headers` règle le cache : fichiers hashés de `assets/` en cache permanent, `index.html` et `sw.js` toujours revalidés pour que les mises à jour arrivent tout de suite.

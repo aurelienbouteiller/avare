@@ -3,11 +3,9 @@ import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vitest/config';
 import { clips } from './plugins/clips.ts';
 
-// Commit construit : fourni par Cloudflare (WORKERS_CI_COMMIT_SHA) ou Netlify (COMMIT_REF),
-// sinon lu dans git.
+// Commit construit : fourni par Cloudflare (WORKERS_CI_COMMIT_SHA), sinon lu dans git.
 function commit() {
-  const fromHost = process.env.WORKERS_CI_COMMIT_SHA ?? process.env.COMMIT_REF;
-  if (fromHost) return fromHost;
+  if (process.env.WORKERS_CI_COMMIT_SHA) return process.env.WORKERS_CI_COMMIT_SHA;
   try {
     return execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
   } catch {

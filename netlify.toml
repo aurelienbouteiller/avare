@@ -1,8 +1,0 @@
-[build]
-  command = "npm run build"
-  publish = "dist"
-
-[build.environment]
-  NODE_VERSION = "24"
-  # Les hooks git ne servent qu'en local.
-  SKIP_INSTALL_SIMPLE_GIT_HOOKS = "1"

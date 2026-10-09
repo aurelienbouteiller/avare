@@ -1,4 +1,4 @@
-# Lu par Netlify et Cloudflare Pages.
+# Lu par Cloudflare (fichiers statiques du Worker).
 /*
   Permissions-Policy: microphone=(self), camera=(), geolocation=()
   X-Content-Type-Options: nosniff
