@@ -1,24 +1,20 @@
-import { render, renderDock } from './render';
 import { state } from './state';
-import { dropUrl, idbPut, RECS, S, save } from './store';
+import { dropUrl, idbPut, RECS } from './store';
 
 /* ---------- enregistrement de ma voix ---------- */
 let MIC: MediaStream | null = null,
   RECORDER: MediaRecorder | null = null;
 // Décidé à l'arrêt de chaque enregistreur : garder la prise (réplique révélée) ou la jeter (séquence interrompue).
 const KEEP = new WeakMap<MediaRecorder, boolean>();
-export async function startRecorder(i: number, tok: number) {
+// Enregistre la réplique i. Renvoie 'denied' si le micro est refusé, 'skipped' si la séquence a changé entre-temps.
+export async function startRecorder(i: number, tok: number): Promise<'started' | 'denied' | 'skipped'> {
   try {
     if (!MIC)
       MIC = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
   } catch {
-    state.NOTICE = "Micro refusé : l'enregistrement est désactivé.";
-    S.check = 'manual';
-    save();
-    render();
-    return;
+    return 'denied';
   }
-  if (tok !== state.RUN || state.phase !== 'await') return;
+  if (tok !== state.RUN || state.phase !== 'await') return 'skipped';
   const chunks: Blob[] = [];
   const r = new MediaRecorder(MIC);
   RECORDER = r;
@@ -39,7 +35,7 @@ export async function startRecorder(i: number, tok: number) {
   };
   r.start();
   state.RECORDING = true;
-  renderDock();
+  return 'started';
 }
 export function stopRecorder(keep: boolean) {
   if (RECORDER && RECORDER.state !== 'inactive') {

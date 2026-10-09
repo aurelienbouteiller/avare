@@ -1,12 +1,10 @@
-import CLIPS from 'virtual:clips';
 import { LINES } from './data/scene';
-import { markSeg } from './render';
+import { hasClip, TTS, useRec } from './platform';
 import { state } from './state';
 import { S } from './store';
 import type { Line } from './types';
 
 /* ---------- voix du téléphone ---------- */
-export const TTS = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
 let VOICES: SpeechSynthesisVoice[] = [];
 export function loadVoices(onChange: () => void) {
   if (!TTS) return;
@@ -82,13 +80,6 @@ export async function say(text: string, rate: number, pitch: number, tok: number
 }
 
 /* ---------- voix enregistrées (public/audio/<voix>/L<ligne>_S<segment>.mp3) ---------- */
-const HAS: Record<string, Set<string>> = Object.fromEntries(Object.entries(CLIPS).map(([b, ids]) => [b, new Set(ids)]));
-export const REC = (HAS.F0?.size ?? 0) > 0;
-export const useRec = () => REC && S.src === 'rec';
-export const canVoice = () => S.tts && (useRec() || TTS);
-function hasClip(bank: string, id: string) {
-  return !!HAS[bank]?.has(id);
-}
 // Chaque clip est chargé une fois en Blob : lecture immédiate, et pas de requêtes Range
 // (mal gérées par Safari iOS quand la réponse vient du service worker).
 const BLOBS = new Map<string, Promise<string | null>>();
@@ -181,11 +172,20 @@ export async function playModelH(i: number, tok: number) {
   await wait(2000);
   return tok === state.RUN;
 }
-export async function playFrosineLine(L: Line, i: number, tok: number, bank: string, rate: number, pitch: number) {
+// onSeg : appelé avec l'indice du segment en cours, puis -1 à la fin de la réplique.
+export async function playFrosineLine(
+  L: Line,
+  i: number,
+  tok: number,
+  bank: string,
+  rate: number,
+  pitch: number,
+  onSeg: (k: number) => void,
+) {
   const segs = L.segs ?? [];
   for (const [k, s] of segs.entries()) {
     if (tok !== state.RUN) return false;
-    markSeg(k);
+    onSeg(k);
     if (s.d !== undefined) {
       await wait(1700 / Math.max(rate, 0.6));
       continue;
@@ -199,6 +199,6 @@ export async function playFrosineLine(L: Line, i: number, tok: number, bank: str
     if (!ok) return false;
     if (src) await wait(120);
   }
-  markSeg(-1);
+  onSeg(-1);
   return tok === state.RUN;
 }

@@ -6,21 +6,11 @@ import '@fontsource/archivo/latin-600.css';
 import '@fontsource/archivo/latin-700.css';
 import './styles.css';
 import { registerSW } from 'virtual:pwa-register';
-import {
-  frosineTestClip,
-  hasVoices,
-  loadVoices,
-  pickVoice,
-  playClip,
-  playModelH,
-  REC,
-  say,
-  sortedVoices,
-  TTS,
-} from './audio';
+import { frosineTestClip, hasVoices, loadVoices, pickVoice, playClip, playModelH, say, sortedVoices } from './audio';
 import { BLOCKS, PLAN } from './data/scene';
 import { engine, lockOff, playLine, playMine, playPassage, stop, stopSpeech } from './engine';
 import { IC } from './icons';
+import { REC, TTS } from './platform';
 import { $, esc, render } from './render';
 import { state } from './state';
 import { clearStats, dropUrl, idbClear, idbKeys, RECS, S, save, URLS } from './store';

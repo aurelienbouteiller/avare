@@ -1,8 +1,6 @@
-import { canVoice } from './audio';
-import { BLOCKS, LINES, MASKS, NOTES, PLAN } from './data/scene';
-import { blockLines, checkMode } from './engine';
+import { BLOCKS, blockLines, LINES, MASKS, NOTES, PLAN } from './data/scene';
 import { EQ, IC } from './icons';
-import { SR } from './listen';
+import { canRecord, canVoice, checkMode, SR } from './platform';
 import { state } from './state';
 import { fmtDate, isMissed, RECS, S, STATS, today } from './store';
 import type { CompareResult, Line, Mask, Phase, Settings } from './types';
@@ -14,6 +12,11 @@ export function markSeg(k: number) {
   });
 }
 // Éléments fixes de index.html : toujours présents.
+// Transcription en cours sous la réplique à dire.
+export function showHeard() {
+  const el = document.querySelector('.ln.cur .heard');
+  if (el) el.textContent = state.HEARD ? `J'entends : « ${state.HEARD} »` : '';
+}
 export const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 const ESC: Record<string, string> = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' };
 export function esc(s: string | number) {
@@ -204,7 +207,7 @@ function renderJour() {
 /* ---------- Répéter ---------- */
 function optsHtml() {
   const sr = !!SR,
-    mr = !!(navigator.mediaDevices && window.MediaRecorder),
+    mr = canRecord(),
     off = navigator.onLine === false;
   const seg = (k: keyof Pick<Settings, 'mask' | 'order' | 'check'>, v: string, l: string, dis?: boolean) =>
     `<button class="seg" data-opt="${k}" data-val="${v}" aria-pressed="${S[k] === v}"${dis ? ' disabled' : ''}>${l}</button>`;

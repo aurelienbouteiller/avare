@@ -324,6 +324,10 @@ function parseSegs(t: string): Seg[] {
     .filter(Boolean)
     .map((s) => (s[0] === '{' ? { d: s.slice(1, -1) } : { t: s }));
 }
+/** Indices des répliques d'un bloc (0 : toute la scène). */
+export function blockLines(b: number) {
+  return LINES.map((_l, i) => i).filter((i) => b === 0 || LINES[i].b === b);
+}
 export const LINES: Line[] = [];
 (() => {
   let cb = 1;

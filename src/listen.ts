@@ -1,18 +1,24 @@
 import { compare, fixNames } from './compare';
-import { LINES } from './data/scene';
-import { evaluate, handsTimer } from './engine';
-import { render, renderDock } from './render';
+import { SR } from './platform';
 import { state } from './state';
-import { S } from './store';
 
 /* ---------- reconnaissance vocale ---------- */
-export const SR: typeof SpeechRecognition | undefined = window.SpeechRecognition || window.webkitSpeechRecognition;
 // Chrome Android renvoie en mode continu des résultats cumulatifs : chacun reprend toute la phrase depuis le début.
 const CUMULATIVE = /Android/i.test(navigator.userAgent);
-export function listen(i: number, tok: number) {
-  const L = LINES[i],
-    t0 = Date.now(),
-    words = L.t.split(/\s+/).length,
+export interface ListenHandlers {
+  /** Le micro écoute. */
+  onStart(): void;
+  /** Transcription partielle, à afficher pendant que l'utilisateur parle. */
+  onHeard(text: string): void;
+  /** Fin de l'écoute (silence, temps écoulé ou réplique complète) : texte entendu. */
+  onDone(said: string): void;
+  /** Reconnaissance impossible (micro refusé, réseau) : message à afficher. */
+  onUnavailable(notice: string): void;
+}
+// Écoute la réplique `expected` ; tok : jeton de séquence, l'écoute s'arrête dès qu'il change.
+export function listen(expected: string, tok: number, h: ListenHandlers) {
+  const t0 = Date.now(),
+    words = expected.split(/\s+/).length,
     maxMs = 7000 + words * 800;
   let prev = '',
     sess = '',
@@ -22,8 +28,7 @@ export function listen(i: number, tok: number) {
     hardT: ReturnType<typeof setTimeout> | undefined,
     r: SpeechRecognition | null = null;
   state.LISTENING = true;
-  state.HEARD = '';
-  renderDock();
+  h.onStart();
   const text = () => fixNames(`${prev} ${sess}`.replace(/\s+/g, ' ').trim());
   const end = () => {
     done = true;
@@ -40,7 +45,7 @@ export function listen(i: number, tok: number) {
     end();
     state.LISTEN = null;
     if (tok !== state.RUN) return;
-    evaluate(i, said);
+    h.onDone(said);
   };
   const open = () => {
     if (!SR) return finish();
@@ -57,38 +62,30 @@ export function listen(i: number, tok: number) {
         for (let k = 0; k < e.results.length; k++) sess += ` ${e.results[k][0].transcript}`;
       }
       lastSpeech = Date.now();
-      state.HEARD = text();
-      showHeard();
+      const heard = text();
+      h.onHeard(heard);
       clearTimeout(silenceT);
-      const sc = compare(L.t, state.HEARD).score;
+      const sc = compare(expected, heard).score;
       silenceT = setTimeout(finish, sc >= 0.97 ? 800 : 2300);
     };
     rec.onerror = (e) => {
-      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      const notice =
+        e.error === 'not-allowed' || e.error === 'service-not-allowed'
+          ? 'Micro refusé : vérification manuelle.'
+          : e.error === 'network'
+            ? 'Reconnaissance vocale indisponible (réseau) : vérification manuelle.'
+            : '';
+      if (notice) {
         end();
         state.LISTEN = null;
-        state.VOICE_OFF = true;
-        state.NOTICE = 'Micro refusé : vérification manuelle.';
-        if (tok === state.RUN) {
-          render();
-          if (S.hands) handsTimer(L);
-        }
-      } else if (e.error === 'network') {
-        end();
-        state.LISTEN = null;
-        state.VOICE_OFF = true;
-        state.NOTICE = 'Reconnaissance vocale indisponible (réseau) : vérification manuelle.';
-        if (tok === state.RUN) {
-          render();
-          if (S.hands) handsTimer(L);
-        }
+        h.onUnavailable(notice);
       }
     };
     rec.onend = () => {
       if (done || tok !== state.RUN) return;
       prev = text();
       sess = '';
-      const sc = compare(L.t, text()).score;
+      const sc = compare(expected, text()).score;
       if (Date.now() - t0 < maxMs && sc < 0.97 && Date.now() - lastSpeech < 4000) {
         try {
           open();
@@ -106,8 +103,4 @@ export function listen(i: number, tok: number) {
   hardT = setTimeout(finish, maxMs);
   state.LISTEN = { abort: end };
   open();
-}
-function showHeard() {
-  const el = document.querySelector('.ln.cur .heard');
-  if (el) el.textContent = state.HEARD ? `J'entends : « ${state.HEARD} »` : '';
 }

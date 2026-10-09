@@ -1,9 +1,10 @@
-import { canVoice, playClip, playFrosineLine, playModelH, prefetch, stopClip, TTS, wait } from './audio';
+import { playClip, playFrosineLine, playModelH, prefetch, stopClip, wait } from './audio';
 import { compare } from './compare';
-import { LINES, MASKS, TOL } from './data/scene';
-import { listen, SR } from './listen';
+import { blockLines, LINES, MASKS, TOL } from './data/scene';
+import { listen } from './listen';
+import { canVoice, checkMode, TTS } from './platform';
 import { releaseMic, startRecorder, stopRecorder } from './recorder';
-import { render, renderScript } from './render';
+import { markSeg, render, renderDock, renderScript, showHeard } from './render';
 import { state } from './state';
 import { isMissed, recUrl, S, STATS, save, today } from './store';
 import { BANKS, type Line } from './types';
@@ -34,9 +35,6 @@ document.addEventListener('visibilitychange', () => {
 });
 
 /* ---------- moteur de répétition ---------- */
-export function blockLines(b: number) {
-  return LINES.map((_l, i) => i).filter((i) => b === 0 || LINES[i].b === b);
-}
 function shuffle<T>(a: T[]) {
   for (let k = a.length - 1; k > 0; k--) {
     const j = Math.floor(Math.random() * (k + 1));
@@ -57,12 +55,6 @@ function buildSeq() {
     if (i > 0 && LINES[i - 1].w === 'F') keep.add(i - 1);
   }
   return ids.filter((i) => keep.has(i));
-}
-export function checkMode() {
-  let c = S.check;
-  if (c === 'voix' && (!SR || state.VOICE_OFF || navigator.onLine === false)) c = 'manual';
-  if (c === 'rec' && !(navigator.mediaDevices && window.MediaRecorder)) c = 'manual';
-  return c;
 }
 export function stopSpeech() {
   state.RUN++;
@@ -130,7 +122,7 @@ export function next() {
         bank = BANKS[Math.floor(Math.random() * BANKS.length)];
       }
       wait(pre)
-        .then(() => (tok === state.RUN ? playFrosineLine(L, i, tok, bank, rate, pitch) : false))
+        .then(() => (tok === state.RUN ? playFrosineLine(L, i, tok, bank, rate, pitch, markSeg) : false))
         .then((ok) => {
           if (ok && tok === state.RUN) next();
         });
@@ -147,13 +139,37 @@ function beginH() {
   render();
   const tok = state.RUN,
     c = checkMode();
-  if (c === 'voix') listen(i, tok);
+  if (c === 'voix')
+    listen(L.t, tok, {
+      onStart: renderDock,
+      onHeard(text) {
+        state.HEARD = text;
+        showHeard();
+      },
+      onDone: (said) => evaluate(i, said),
+      onUnavailable(notice) {
+        state.VOICE_OFF = true;
+        state.NOTICE = notice;
+        if (tok !== state.RUN) return;
+        render();
+        if (S.hands) handsTimer(L);
+      },
+    });
   else {
-    if (c === 'rec') startRecorder(i, tok);
+    if (c === 'rec')
+      startRecorder(i, tok).then((r) => {
+        if (r === 'started') renderDock();
+        else if (r === 'denied') {
+          state.NOTICE = "Micro refusé : l'enregistrement est désactivé.";
+          S.check = 'manual';
+          save();
+          render();
+        }
+      });
     if (S.hands) handsTimer(L);
   }
 }
-export function handsTimer(L: Line) {
+function handsTimer(L: Line) {
   const words = L.t.split(/\s+/).length,
     ms = 1600 + (words * 450) / Math.max(S.rate, 0.7);
   const bar = document.querySelector<HTMLElement>('.ln.cur .timer i');
@@ -203,7 +219,7 @@ function reveal() {
     })();
   }
 }
-export function evaluate(i: number, said: string) {
+function evaluate(i: number, said: string) {
   state.RESULT = compare(LINES[i].t, said);
   const ok = state.RESULT.score >= TOL[S.tol || 'normale'];
   record(ok);
@@ -307,7 +323,7 @@ export async function playPassage(mine: boolean, from?: number) {
     renderScript(true);
     prefetch(ids.slice(k + 1, k + 3), S.fv || 'F0');
     const L = LINES[i];
-    if (L.w === 'F') await playFrosineLine(L, i, tok, S.fv || 'F0', S.rate, 1);
+    if (L.w === 'F') await playFrosineLine(L, i, tok, S.fv || 'F0', S.rate, 1, markSeg);
     else {
       const src = mine ? await recUrl(i) : null;
       if (src) await playClip(src, 1, tok);
@@ -338,7 +354,7 @@ export async function playLine(i: number) {
   render();
   const L = LINES[i],
     tok = state.RUN;
-  if (L.w === 'F') await playFrosineLine(L, i, tok, S.fv || 'F0', S.rate, 1);
+  if (L.w === 'F') await playFrosineLine(L, i, tok, S.fv || 'F0', S.rate, 1, markSeg);
   else await playModelH(i, tok);
   if (tok === state.RUN) {
     state.playingIdx = -1;
