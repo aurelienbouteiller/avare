@@ -1,6 +1,6 @@
-import { compare, fixNames } from './compare';
+import { compare, fixNames } from '../domain/compare';
+import { state } from '../state';
 import { SR } from './platform';
-import { state } from './state';
 
 /* ---------- reconnaissance vocale ---------- */
 // Chrome Android renvoie en mode continu des résultats cumulatifs : chacun reprend toute la phrase depuis le début.

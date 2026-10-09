@@ -1,5 +1,17 @@
 /* ---------- stockage ---------- */
-import { BANKS, CHECKS, isOneOf, MASK_IDS, MODES, ORDERS, type Settings, SRCS, type Stat, THEMES, TOLS } from './types';
+import {
+  BANKS,
+  CHECKS,
+  isOneOf,
+  MASK_IDS,
+  MODES,
+  ORDERS,
+  type Settings,
+  SRCS,
+  type Stat,
+  THEMES,
+  TOLS,
+} from '../types';
 
 // La clé garde son nom d'origine : le script de thème de index.html la lit aussi (champ s.theme).
 const KEY = 'souffleur-harpagon-v1';

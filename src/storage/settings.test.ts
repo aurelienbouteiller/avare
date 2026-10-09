@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseSaved } from './store';
+import { parseSaved } from './settings';
 
 describe('parseSaved', () => {
   it('donne les valeurs par défaut sans données ou avec un JSON cassé', () => {

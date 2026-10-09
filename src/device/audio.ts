@@ -1,8 +1,8 @@
-import { LINES } from './data/scene';
+import { LINES } from '../data/scene';
+import { state } from '../state';
+import { S } from '../storage/settings';
+import type { Line } from '../types';
 import { hasClip, TTS, useRec } from './platform';
-import { state } from './state';
-import { S } from './store';
-import type { Line } from './types';
 
 /* ---------- voix du téléphone ---------- */
 let VOICES: SpeechSynthesisVoice[] = [];

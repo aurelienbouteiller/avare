@@ -7,14 +7,21 @@ import '@fontsource/archivo/latin-700.css';
 import './styles.css';
 import { registerSW } from 'virtual:pwa-register';
 import { html, render as litRender } from 'lit-html';
-import { frosineTestClip, hasVoices, loadVoices, pickVoice, playClip, playModelH, say, sortedVoices } from './audio';
 import { BLOCKS, PLAN } from './data/scene';
-import { engine, lockOff, playLine, playMine, playPassage, stop, stopSpeech } from './engine';
-import { IC } from './icons';
-import { REC, TTS } from './platform';
-import { $, render } from './render';
+import {
+  frosineTestClip,
+  hasVoices,
+  loadVoices,
+  pickVoice,
+  playClip,
+  playModelH,
+  say,
+  sortedVoices,
+} from './device/audio';
+import { REC, TTS } from './device/platform';
+import { engine, lockOff, playLine, playMine, playPassage, stop, stopSpeech } from './engine/rehearsal';
 import { state } from './state';
-import { clearStats, dropUrl, idbClear, idbKeys, RECS, S, save, URLS } from './store';
+import { clearStats, dropUrl, idbClear, idbKeys, RECS, S, save, URLS } from './storage/settings';
 import {
   BANKS,
   type BeforeInstallPromptEvent,
@@ -28,6 +35,8 @@ import {
   THEMES,
   TOLS,
 } from './types';
+import { IC } from './ui/icons';
+import { $, render } from './ui/render';
 
 // Élément le plus proche de la cible d'un évènement délégué.
 const closest = (e: Event, sel: string) => (e.target as Element).closest<HTMLElement>(sel);

@@ -1,8 +1,8 @@
 /* ---------- capacités de l'appareil et voix disponibles ---------- */
 import CLIPS from 'virtual:clips';
-import { state } from './state';
-import { S } from './store';
-import type { Check } from './types';
+import { state } from '../state';
+import { S } from '../storage/settings';
+import type { Check } from '../types';
 
 /** Synthèse vocale du téléphone. */
 export const TTS = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;

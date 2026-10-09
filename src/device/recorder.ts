@@ -1,5 +1,5 @@
-import { state } from './state';
-import { dropUrl, idbPut, RECS } from './store';
+import { state } from '../state';
+import { dropUrl, idbPut, RECS } from '../storage/settings';
 
 /* ---------- enregistrement de ma voix ---------- */
 let MIC: MediaStream | null = null,

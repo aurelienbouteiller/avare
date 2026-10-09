@@ -1,5 +1,5 @@
 /* ---------- comparaison de la réplique dite ---------- */
-import type { CompareResult } from './types';
+import type { CompareResult } from '../types';
 
 function numToFr(n: number): string {
   const u = [

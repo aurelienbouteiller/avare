@@ -1,11 +1,11 @@
 import { html, render as litRender, nothing, type TemplateResult } from 'lit-html';
 import { join } from 'lit-html/directives/join.js';
-import { BLOCKS, blockLines, LINES, MASKS, NOTES, PLAN } from './data/scene';
+import { BLOCKS, blockLines, LINES, MASKS, NOTES, PLAN } from '../data/scene';
+import { canRecord, canVoice, checkMode, SR } from '../device/platform';
+import { state } from '../state';
+import { fmtDate, isMissed, RECS, S, STATS, today } from '../storage/settings';
+import type { CompareResult, Line, Mask, Phase, Settings } from '../types';
 import { EQ, IC } from './icons';
-import { canRecord, canVoice, checkMode, SR } from './platform';
-import { state } from './state';
-import { fmtDate, isMissed, RECS, S, STATS, today } from './store';
-import type { CompareResult, Line, Mask, Phase, Settings } from './types';
 
 /* ---------- rendu (lit-html : les valeurs interpolées sont échappées, le DOM est mis à jour sur place) ---------- */
 type View = TemplateResult | typeof nothing;

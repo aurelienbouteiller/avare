@@ -1,13 +1,13 @@
-import { playClip, playFrosineLine, playModelH, prefetch, stopClip, wait } from './audio';
-import { compare } from './compare';
-import { blockLines, LINES, MASKS, TOL } from './data/scene';
-import { listen } from './listen';
-import { canVoice, checkMode, TTS } from './platform';
-import { releaseMic, startRecorder, stopRecorder } from './recorder';
-import { render, renderDock, renderScript } from './render';
-import { state } from './state';
-import { isMissed, recUrl, S, STATS, save, today } from './store';
-import { BANKS, type Line } from './types';
+import { blockLines, LINES, MASKS, TOL } from '../data/scene';
+import { playClip, playFrosineLine, playModelH, prefetch, stopClip, wait } from '../device/audio';
+import { listen } from '../device/listen';
+import { canVoice, checkMode, TTS } from '../device/platform';
+import { releaseMic, startRecorder, stopRecorder } from '../device/recorder';
+import { compare } from '../domain/compare';
+import { state } from '../state';
+import { isMissed, recUrl, S, STATS, save, today } from '../storage/settings';
+import { BANKS, type Line } from '../types';
+import { render, renderDock, renderScript } from '../ui/render';
 
 // Segment de la réplique de Frosine en cours de lecture, surligné à l'écran.
 function markSeg(k: number) {
