@@ -107,7 +107,7 @@ export const PLAN = [
   {d:'2026-10-11',t:"Sans texte",x:"Premier vrai passage sans texte, avec la vérification à la voix. Les répliques ratées sont gardées pour demain.",go:[{l:"Scène, vérification à la voix",p:{block:0,mask:'coins',check:'voix'}}]},
   {d:'2026-10-12',t:"Les trous",x:"Ne retravaille que les répliques à revoir. 20 minutes maximum.",go:[{l:"Mes répliques à revoir",p:{block:0,mask:'coins',only:true}}]},
   {d:'2026-10-13',t:"Debout et dans le désordre",x:"Joue debout, avec les déplacements. Puis les répliques dans le désordre : tu dois pouvoir repartir de n'importe où.",go:[{l:"Scène debout",p:{block:0,mask:'coins'}},{l:"Dans le désordre",p:{block:0,mask:'coins',order:'hasard'}}]},
-  {d:'2026-10-14',t:"Partenaire inconnue",x:"Active la partenaire imprévisible : deux voix, des débits et des temps de réaction qui changent.",go:[{l:"Partenaire imprévisible",p:{block:0,mask:'coins',wild:true}}]},
+  {d:'2026-10-14',t:"Partenaire inconnue",x:"Active la partenaire imprévisible : quatre voix, des débits et des temps de réaction qui changent.",go:[{l:"Partenaire imprévisible",p:{block:0,mask:'coins',wild:true}}]},
   {d:'2026-10-15',t:"Dernier filage",x:"Un seul passage complet, le plus tôt possible, puis repos. Relis le texte juste avant de dormir.",go:[{l:"Un passage complet",p:{block:0,mask:'coins'}},{l:"Relire avant de dormir",p:{mode:'lire',block:0}}]},
   {d:'2026-10-16',t:"Jour J",x:"Une relecture légère le matin, et rien de nouveau. Bonne représentation !",go:[{l:"Relecture",p:{mode:'lire',block:0}}]}
 ];

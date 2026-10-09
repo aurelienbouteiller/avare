@@ -52,7 +52,7 @@ export function next(){
     state.phase='frosine'; render();
     if(canVoice()){
       const tok=state.RUN; let rate=S.rate, pitch=1, pre=300, bank=S.fv||'F0';
-      if(S.wild){ rate=S.rate*(0.82+Math.random()*0.4); pitch=0.96+Math.random()*0.1; pre=Math.random()*1400; bank=Math.random()<.5?'F0':'F1'; }
+      if(S.wild){ rate=S.rate*(0.82+Math.random()*0.4); pitch=0.96+Math.random()*0.1; pre=Math.random()*1400; bank=['F0','F1','F2','F3'][Math.floor(Math.random()*4)]; }
       wait(pre).then(()=> tok===state.RUN ? playFrosineLine(L,i,tok,bank,rate,pitch) : false).then(ok=>{ if(ok && tok===state.RUN) next(); });
     }
   } else beginH();
