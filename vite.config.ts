@@ -1,6 +1,6 @@
-import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
-import { clips } from './plugins/clips';
+import { defineConfig } from 'vitest/config';
+import { clips } from './plugins/clips.ts';
 
 export default defineConfig({
   base: './',
@@ -35,4 +35,7 @@ export default defineConfig({
       },
     }),
   ],
+  test: {
+    include: ['src/**/*.test.ts', 'plugins/**/*.test.ts'],
+  },
 });
