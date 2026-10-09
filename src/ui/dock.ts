@@ -1,23 +1,32 @@
 /* ---------- dock d'actions : message d'état et boutons, selon l'écran et la phase ---------- */
-import { html, render as litRender, nothing, type TemplateResult } from 'lit';
+import { html, nothing, type TemplateResult } from 'lit';
 import { blockLines } from '../data/scene';
 import { canVoice } from '../device/platform';
 import { isHarpagon } from '../domain/lines';
 import { state } from '../state';
 import { recorded } from '../storage/recordings';
 import { isMissed, settings } from '../storage/settings';
-import { $ } from './dom';
+import { Component } from './component';
 import { IC } from './icons';
-import { plural, type View } from './parts';
+import { inRun, markLabel, plural, type View } from './parts';
 
 type Status = View | string;
 type Dock = [status: Status, buttons: View];
 
+const BTN = 'inline-flex min-h-[3.6rem] items-center justify-center rounded-2xl';
+const MAIN = `${BTN} flex-1 gap-2 px-4 text-[1.05rem] font-bold [&_.ic]:size-[1.2em]`;
+const KIND = {
+  main: `${MAIN} bg-accent text-on-accent`,
+  ok: `${MAIN} bg-ok text-bg`,
+  ko: `${MAIN} bg-ko text-bg`,
+};
+
 const side = (act: string, icon: TemplateResult, label: string) =>
-  html`<button class="btn side" data-act=${act}>${icon}<span>${label}</span></button>`;
-const main = (act: string, body: unknown, cls = 'main') =>
-  html`<button class="btn ${cls}" data-act=${act}>${body}</button>`;
-const live = (cls: string, label: string) => html`<span class=${cls}><span class="dot"></span>${label}</span>`;
+  html`<button class="${BTN} min-w-[4.6rem] flex-none flex-col gap-[0.15rem] border border-line bg-surface-2 px-[0.6rem] text-[0.75rem] font-semibold [&_.ic]:size-5" data-act=${act}>${icon}<span>${label}</span></button>`;
+const main = (act: string, body: unknown, kind: keyof typeof KIND = 'main') =>
+  html`<button class=${KIND[kind]} data-act=${act}>${body}</button>`;
+const live = (kind: 'live' | 'rec', label: string) =>
+  html`<span class="inline-flex items-center rounded-full px-[0.7rem] py-1 font-bold ${kind === 'rec' ? 'bg-ko-soft text-ko' : 'bg-fros-soft text-fros'}"><span class="mr-[0.4em] inline-block size-[0.6em] animate-blink rounded-full bg-current"></span>${label}</span>`;
 
 const toRepeter = (hasMine: boolean) =>
   main('to-repeter', html`${hasMine ? 'Répéter' : 'Répéter ce passage'}${IC.arrow}`);
@@ -38,7 +47,9 @@ function idleDock(): Dock {
   const modes = [settings.hands && 'Mains libres', settings.wild && 'Partenaire imprévisible'].filter(
     (x) => x !== false,
   );
-  return [html`${modes.map((x) => html`<span class="pill">${x}</span>`)}`, main('start', html`${IC.play}Commencer`)];
+  const pill = (x: string) =>
+    html`<span class="inline-flex items-center rounded-full bg-harp-soft px-[0.6rem] py-[0.15rem] text-[0.78rem] font-bold text-harp">${x}</span>`;
+  return [html`${modes.map(pill)}`, main('start', html`${IC.play}Commencer`)];
 }
 
 function frosineDock(): Dock {
@@ -58,7 +69,7 @@ function awaitStatus(): Status {
 function awaitDock(): Dock {
   return [
     awaitStatus(),
-    html`${side('replay', IC.replay, 'Réécouter')}${side('hint', IC.hint, 'Indice')}${main('reveal', html`${IC.eye}Révéler`, 'gold')}`,
+    html`${side('replay', IC.replay, 'Réécouter')}${side('hint', IC.hint, 'Indice')}${main('reveal', html`${IC.eye}Révéler`)}`,
   ];
 }
 
@@ -68,9 +79,7 @@ function checkDock(): Dock {
   // Vérifiée à la voix : le verdict est déjà donné, on peut le corriger.
   if (state.result) {
     const ok = state.marks[state.pos] === 'ok';
-    const verdict = ok
-      ? html`<span class="mark ok">${IC.check}Juste</span>`
-      : html`<span class="mark ko">${IC.cross}À revoir</span>`;
+    const verdict = ok ? markLabel('ok', html`${IC.check}Juste`) : markLabel('ko', html`${IC.cross}À revoir`);
     const buttons = settings.hands
       ? stopAndNext
       : html`${side('retry', IC.replay, 'Réessayer')}${side('flip', ok ? IC.cross : IC.check, ok ? 'Compter faux' : 'Compter juste')}${next}`;
@@ -113,14 +122,27 @@ function dock(): Dock {
   }
 }
 
-export function renderDock() {
-  const jour = settings.mode === 'jour';
-  document.body.classList.toggle('nodock', jour);
-  $('#dock').hidden = jour;
-  if (jour) return;
-  const [status, buttons] = dock();
-  // Un avertissement (micro refusé, réseau…) précède le message d'état.
-  const hasStatus = status !== nothing && status !== '';
-  litRender(state.notice ? html`${state.notice}${hasStatus ? html` ${status}` : ''}` : status, $('#status'));
-  litRender(buttons, $('#row'));
+export class DockBar extends Component {
+  protected override render() {
+    if (settings.mode === 'jour') return html`<footer id="dock" hidden></footer>`;
+    const [status, buttons] = dock();
+    // Un avertissement (micro refusé, réseau…) précède le message d'état.
+    const hasStatus = status !== nothing && status !== '';
+    const shown = state.notice ? html`${state.notice}${hasStatus ? html` ${status}` : ''}` : status;
+    // En répétition, plus d'onglets dessous : le dock descend en bas de l'écran.
+    const place = inRun()
+      ? 'bottom-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]'
+      : 'bottom-(--navh) pb-[0.7rem]';
+    return html`<footer id="dock" class="fixed inset-x-0 z-6 border-t border-line bg-[color-mix(in_srgb,var(--surface)_94%,transparent)] px-4 pt-[0.6rem] backdrop-blur-[10px] ${place}">
+      <div id="status" class="mx-auto mb-2 flex min-h-[1.3em] max-w-[44rem] flex-wrap items-center justify-center gap-[0.4rem] text-center text-[0.88rem] text-muted empty:hidden" aria-live="polite">${shown}</div>
+      <div id="row" class="mx-auto flex max-w-[44rem] gap-2">${buttons}</div>
+    </footer>`;
+  }
+}
+customElements.define('sf-dock', DockBar);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'sf-dock': DockBar;
+  }
 }

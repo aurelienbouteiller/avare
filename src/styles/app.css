@@ -1,6 +1,5 @@
-/* ---------- Tailwind : ordre des couches, thème, utilitaires maison ---------- */
-/* legacy : anciennes feuilles en cours de conversion, sous les utilitaires pour que ceux-ci l'emportent. */
-@layer theme, base, legacy, components, utilities;
+/* ---------- Tailwind : thème, bases de la page, utilitaires maison ---------- */
+/* Les styles de chaque composant sont ses classes, dans son fichier .ts. */
 @import "tailwindcss";
 
 /* Seules les couleurs, polices et animations de l'appli existent : pas de palette Tailwind par défaut. */
@@ -86,5 +85,41 @@
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-padding-top: 6rem;
+    overflow-x: clip;
+  }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.45;
+    overflow-x: clip;
+  }
+  button {
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button:disabled {
+    cursor: default;
+  }
+  :focus-visible {
+    outline: 3px solid var(--accent);
+    outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * {
+      /* biome-ignore lint/complexity/noImportantStyles: réduction des animations demandée par le système */
+      transition: none !important;
+      /* biome-ignore lint/complexity/noImportantStyles: idem */
+      animation: none !important;
+    }
   }
 }

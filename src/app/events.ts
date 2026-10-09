@@ -57,13 +57,20 @@ function onScriptClick(e: Event) {
   tapLine(e);
 }
 
+// En-tête : puces de bloc, ou bouton d'arrêt de la barre de répétition.
+function onTopClick(e: Event) {
+  onChipClick(e);
+  onActionClick(e);
+}
+
+// Les composants se dessinent après le démarrage : les écouteurs sont posés sur leurs éléments hôtes.
 export function bindEvents() {
-  $('.tabs').addEventListener('click', onTabClick);
-  $('#chips').addEventListener('click', onChipClick);
-  $('#row').addEventListener('click', onActionClick);
-  $('#runbar').addEventListener('click', onActionClick);
-  $('#script').addEventListener('click', onScriptClick);
-  $('#script').addEventListener('keydown', (e) => {
+  $('sf-tabs').addEventListener('click', onTabClick);
+  $('sf-top').addEventListener('click', onTopClick);
+  $('sf-dock').addEventListener('click', onActionClick);
+  const script = $('sf-script');
+  script.addEventListener('click', onScriptClick);
+  script.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') tapLine(e);
   });
   // La vérification à la voix dépend du réseau.

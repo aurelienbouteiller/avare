@@ -7,6 +7,7 @@ import { track } from '../reactive';
  * Tailwind, la délégation d'évènements et les tests e2e le voient comme avant. Les signaux lus par `render()`
  * sont suivis, et le moindre changement redemande un rendu, regroupé par Lit en fin de tâche.
  * Défilement et autres effets sur le DOM vont dans `updated()`, qui s'exécute hors du suivi.
+ * L'élément hôte ne crée pas de boîte (`display: contents`) : la mise en page est celle de son contenu.
  */
 export abstract class Component extends LitElement {
   #stop = () => {};
@@ -25,6 +26,7 @@ export abstract class Component extends LitElement {
 
   override connectedCallback() {
     super.connectedCallback();
+    this.classList.add('contents');
     this.requestUpdate();
   }
 

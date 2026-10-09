@@ -14,8 +14,6 @@ function applyTheme() {
   const dark = t === 'sombre' || (t === 'auto' && systemDark.matches);
   const meta = document.querySelector<HTMLMetaElement>('meta[name=theme-color]');
   if (meta) meta.content = dark ? DARK_BG : LIGHT_BG;
-  for (const b of document.querySelectorAll<HTMLElement>('#optTheme [data-val]'))
-    b.setAttribute('aria-pressed', b.dataset.val === t ? 'true' : 'false');
 }
 
 /** Applique le thème à chaque changement de réglage, et le suit quand le système change de mode. */

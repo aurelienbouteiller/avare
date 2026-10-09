@@ -1,19 +1,22 @@
 /* ---------- voix du téléphone (synthèse vocale) ---------- */
+import { signal } from '@preact/signals-core';
 import { control } from '../state';
 import { settings } from '../storage/settings';
 import { TTS } from './platform';
 import { settleOnce, wait } from './timing';
 
-let voices: SpeechSynthesisVoice[] = [];
+/** Voix françaises du téléphone (observées : la liste arrive parfois après le chargement de la page). */
+const voices = signal<SpeechSynthesisVoice[]>([]);
 
-/** Relit les voix françaises disponibles (la liste arrive parfois après le chargement de la page). */
-export function loadVoices(onChange: () => void) {
+/** Relit les voix françaises disponibles. */
+export function loadVoices() {
   if (!TTS) return;
-  voices = speechSynthesis.getVoices().filter((v) => (v.lang || '').toLowerCase().replace('_', '-').startsWith('fr'));
-  onChange();
+  voices.value = speechSynthesis
+    .getVoices()
+    .filter((v) => (v.lang || '').toLowerCase().replace('_', '-').startsWith('fr'));
 }
 
-export const hasVoices = () => voices.length > 0;
+export const hasVoices = () => voices.value.length > 0;
 
 // Les voix « naturelles » ou en ligne sont nettement meilleures que les voix embarquées de base.
 function voiceScore(v: SpeechSynthesisVoice) {
@@ -28,12 +31,12 @@ function voiceScore(v: SpeechSynthesisVoice) {
 }
 
 /** Voix françaises, la meilleure en premier. */
-export const sortedVoices = () => voices.slice().sort((a, b) => voiceScore(b) - voiceScore(a));
+export const sortedVoices = () => voices.value.slice().sort((a, b) => voiceScore(b) - voiceScore(a));
 
 /** Voix choisie dans les réglages, sinon la meilleure. */
 export function pickVoice() {
-  if (!voices.length) return null;
-  return voices.find((v) => v.voiceURI === settings.voice) || sortedVoices()[0];
+  if (!voices.value.length) return null;
+  return voices.value.find((v) => v.voiceURI === settings.voice) || sortedVoices()[0];
 }
 
 // Pause après une phrase, selon sa ponctuation finale.

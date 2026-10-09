@@ -2,7 +2,7 @@
 import { html, type SVGTemplateResult, svg } from 'lit';
 
 const icon = (d: SVGTemplateResult, fill?: boolean) =>
-  html`<svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill=${fill ? 'currentColor' : 'none'} stroke=${fill ? 'none' : 'currentColor'} stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+  html`<svg class="ic block size-[1.25em] flex-none" viewBox="0 0 24 24" aria-hidden="true" fill=${fill ? 'currentColor' : 'none'} stroke=${fill ? 'none' : 'currentColor'} stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 
 export const IC = {
   gear: icon(
@@ -32,4 +32,5 @@ export const IC = {
   download: icon(svg`<path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/>`),
 };
 // Égaliseur animé, pour la réplique en cours de lecture.
-export const EQ = html`<span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>`;
+const BAR = 'w-[3px] rounded-[2px] bg-current animate-eq';
+export const EQ = html`<span class="inline-flex h-[0.9rem] items-end gap-[2px]" aria-hidden="true"><i class=${BAR}></i><i class="${BAR} [animation-delay:-0.3s]"></i><i class="${BAR} [animation-delay:-0.6s]"></i></span>`;
