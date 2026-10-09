@@ -4,10 +4,16 @@ import { blockLines, LINES, MASKS, TOL } from './data/scene';
 import { listen } from './listen';
 import { canVoice, checkMode, TTS } from './platform';
 import { releaseMic, startRecorder, stopRecorder } from './recorder';
-import { markSeg, render, renderDock, renderScript, showHeard } from './render';
+import { render, renderDock, renderScript } from './render';
 import { state } from './state';
 import { isMissed, recUrl, S, STATS, save, today } from './store';
 import { BANKS, type Line } from './types';
+
+// Segment de la réplique de Frosine en cours de lecture, surligné à l'écran.
+function markSeg(k: number) {
+  state.seg = k;
+  renderScript();
+}
 
 /* ---------- écran allumé ---------- */
 let WL: WakeLockSentinel | null = null;
@@ -60,6 +66,7 @@ export function stopSpeech() {
   state.RUN++;
   clearTimeout(state.timerId);
   state.playingIdx = -1;
+  state.seg = -1;
   state.PASSAGE = false;
   stopClip();
   if (TTS) {
@@ -144,7 +151,7 @@ function beginH() {
       onStart: renderDock,
       onHeard(text) {
         state.HEARD = text;
-        showHeard();
+        renderScript();
       },
       onDone: (said) => evaluate(i, said),
       onUnavailable(notice) {
@@ -174,6 +181,10 @@ function handsTimer(L: Line) {
     ms = 1600 + (words * 450) / Math.max(S.rate, 0.7);
   const bar = document.querySelector<HTMLElement>('.ln.cur .timer i');
   if (bar) {
+    // La barre peut être réutilisée par le rendu (Réessayer) : repartir de zéro sans transition.
+    bar.style.transitionDuration = '0ms';
+    bar.style.width = '0';
+    void bar.offsetWidth;
     bar.style.transitionDuration = `${ms}ms`;
     requestAnimationFrame(() =>
       requestAnimationFrame(() => {

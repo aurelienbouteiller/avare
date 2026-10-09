@@ -33,5 +33,8 @@
   },
   "simple-git-hooks": {
     "pre-commit": "npx biome check --staged --no-errors-on-unmatched && npm run typecheck"
+  },
+  "dependencies": {
+    "lit-html": "3.3.3"
   }
 }

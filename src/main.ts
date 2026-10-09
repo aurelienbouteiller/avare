@@ -6,12 +6,13 @@ import '@fontsource/archivo/latin-600.css';
 import '@fontsource/archivo/latin-700.css';
 import './styles.css';
 import { registerSW } from 'virtual:pwa-register';
+import { html, render as litRender } from 'lit-html';
 import { frosineTestClip, hasVoices, loadVoices, pickVoice, playClip, playModelH, say, sortedVoices } from './audio';
 import { BLOCKS, PLAN } from './data/scene';
 import { engine, lockOff, playLine, playMine, playPassage, stop, stopSpeech } from './engine';
 import { IC } from './icons';
 import { REC, TTS } from './platform';
-import { $, esc, render } from './render';
+import { $, render } from './render';
 import { state } from './state';
 import { clearStats, dropUrl, idbClear, idbKeys, RECS, S, save, URLS } from './store';
 import {
@@ -47,7 +48,8 @@ function applyTheme() {
 applyTheme();
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', applyTheme);
 document.querySelectorAll<HTMLElement>('[data-ic]').forEach((el) => {
-  el.insertAdjacentHTML('afterbegin', IC[el.dataset.ic as keyof typeof IC] || '');
+  const ic = IC[el.dataset.ic as keyof typeof IC];
+  if (ic) litRender(ic, el);
 });
 
 /* ---------- interactions ---------- */
@@ -225,24 +227,25 @@ function fillVoices() {
   const sel = $<HTMLSelectElement>('#optVoice');
   if (!sel) return;
   if (!TTS) {
-    sel.innerHTML = '<option>Indisponible</option>';
+    litRender(html`<option>Indisponible</option>`, sel);
     sel.disabled = true;
     $('#voiceInfo').textContent = 'Ce navigateur ne lit pas le texte à voix haute.';
     return;
   }
   if (!hasVoices()) {
-    sel.innerHTML = '<option value="">Voix française par défaut</option>';
+    litRender(html`<option value="">Voix française par défaut</option>`, sel);
     $('#voiceInfo').textContent = 'Utilisée seulement en secours.';
     return;
   }
   const v = pickVoice(),
     best = sortedVoices()[0];
-  sel.innerHTML = sortedVoices()
-    .map(
+  litRender(
+    sortedVoices().map(
       (x) =>
-        `<option value="${esc(x.voiceURI)}"${v && x.voiceURI === v.voiceURI ? ' selected' : ''}>${esc(x.name)}${x === best ? ' (recommandée)' : ''}</option>`,
-    )
-    .join('');
+        html`<option value=${x.voiceURI} .selected=${x.voiceURI === v?.voiceURI}>${x.name}${x === best ? ' (recommandée)' : ''}</option>`,
+    ),
+    sel,
+  );
   $('#voiceInfo').textContent = 'Utilisée seulement en secours, si une voix enregistrée manque.';
 }
 function syncDlg() {

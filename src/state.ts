@@ -12,6 +12,7 @@ export const state: RuntimeState = {
   runMarks: {},
   timerId: undefined,
   playingIdx: -1,
+  seg: -1,
   RESULT: null,
   NOTICE: '',
   PASSAGE: false,

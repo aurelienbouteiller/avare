@@ -101,6 +101,8 @@ export interface RuntimeState {
   runMarks: Record<number, Mark>;
   timerId: ReturnType<typeof setTimeout> | undefined;
   playingIdx: number;
+  /** Segment de la réplique de Frosine en cours de lecture (-1 : aucun). */
+  seg: number;
   RESULT: CompareResult | null;
   NOTICE: string;
   PASSAGE: boolean;
