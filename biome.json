@@ -6,15 +6,7 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": [
-      "**",
-      "!!**/dist",
-      "!!**/dev-dist",
-      "!!public",
-      "!!.claude",
-      "!package-lock.json",
-      "!src/data/clips.json"
-    ]
+    "includes": ["**", "!!**/dist", "!!**/dev-dist", "!!public", "!!.claude", "!package-lock.json"]
   },
   "formatter": {
     "enabled": true,

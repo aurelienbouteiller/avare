@@ -1,9 +1,11 @@
 import { defineConfig } from 'vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { clips } from './plugins/clips';
 
 export default defineConfig({
   base: './',
   plugins: [
+    clips(),
     VitePWA({
       registerType: 'autoUpdate',
       injectRegister: false,

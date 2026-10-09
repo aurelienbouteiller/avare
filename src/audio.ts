@@ -1,4 +1,4 @@
-import CLIPS from './data/clips.json';
+import CLIPS from 'virtual:clips';
 import { LINES } from './data/scene';
 import { markSeg } from './render';
 import { state } from './state';
@@ -82,9 +82,7 @@ export async function say(text: string, rate: number, pitch: number, tok: number
 }
 
 /* ---------- voix enregistrées (public/audio/<voix>/L<ligne>_S<segment>.mp3) ---------- */
-const HAS: Record<string, Set<string>> = Object.fromEntries(
-  Object.entries(CLIPS as Record<string, string[]>).map(([b, ids]) => [b, new Set(ids)]),
-);
+const HAS: Record<string, Set<string>> = Object.fromEntries(Object.entries(CLIPS).map(([b, ids]) => [b, new Set(ids)]));
 export const REC = (HAS.F0?.size ?? 0) > 0;
 export const useRec = () => REC && S.src === 'rec';
 export const canVoice = () => S.tts && (useRec() || TTS);
