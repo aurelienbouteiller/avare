@@ -116,10 +116,12 @@ export function stop(){ stopSpeech(); state.phase='idle'; lockOff(); releaseMic(
 export const engine = { start, stop, next, reveal, hint, replay, retry, flip, judge, goTo };
 
 /* ---------- lecture de passages (onglet Lire) ---------- */
-export async function playPassage(mine){
-  stopSpeech(); state.PASSAGE=true; const tok=state.RUN; lockOn(); render();
+let passageMine=false;
+// from : réplique où commencer (ou reprendre) la lecture du passage.
+export async function playPassage(mine,from){
+  stopSpeech(); state.PASSAGE=true; passageMine=mine; const tok=state.RUN; lockOn(); render();
   const ids=blockLines(S.block);
-  for(let k=0;k<ids.length;k++){
+  for(let k=Math.max(0,ids.indexOf(from));k<ids.length;k++){
     const i=ids[k];
     if(tok!==state.RUN) break;
     state.playingIdx=i; renderScript(true);
@@ -137,6 +139,7 @@ export async function playPassage(mine){
   if(tok===state.RUN){ state.PASSAGE=false; state.playingIdx=-1; lockOff(); render(); }
 }
 export async function playLine(i){
+  if(state.PASSAGE){ playPassage(passageMine,i); return; }
   const was=state.playingIdx; stopSpeech();
   if(was===i){ render(); return; }
   state.playingIdx=i; render();
