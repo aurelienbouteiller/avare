@@ -19,6 +19,9 @@ const main = (act: string, body: unknown, cls = 'main') =>
   html`<button class="btn ${cls}" data-act=${act}>${body}</button>`;
 const live = (cls: string, label: string) => html`<span class=${cls}><span class="dot"></span>${label}</span>`;
 
+const toRepeter = (hasMine: boolean) =>
+  main('to-repeter', html`${hasMine ? 'Répéter' : 'Répéter ce passage'}${IC.arrow}`);
+
 function lireDock(): Dock {
   const hasMine = blockLines(settings.block).some((i) => recorded.has(i));
   if (state.passage) {
@@ -30,8 +33,6 @@ function lireDock(): Dock {
     html`${side('play-all', IC.play, 'Écouter')}${myVoice}${toRepeter(hasMine)}`,
   ];
 }
-const toRepeter = (hasMine: boolean) =>
-  main('to-repeter', html`${hasMine ? 'Répéter' : 'Répéter ce passage'}${IC.arrow}`);
 
 function idleDock(): Dock {
   const modes = [settings.hands && 'Mains libres', settings.wild && 'Partenaire imprévisible'].filter(

@@ -9,7 +9,7 @@ import { closest } from '../ui/dom';
 import { render } from '../ui/render';
 
 /** Change d'écran (et de bloc) en arrêtant ce qui est en cours. */
-export function goTo(mode: Mode, block?: number) {
+export function showScreen(mode: Mode, block?: number) {
   stop();
   settings.mode = mode;
   if (block !== undefined) {
@@ -94,8 +94,8 @@ const ACTIONS: Record<string, (el: HTMLElement) => void> = {
   'only-start': () => setOnlyMissed(true, true),
   'only-off-start': () => setOnlyMissed(false, true),
   // navigation
-  'go-block': (el) => goTo('repeter', Number(el.dataset.b)),
-  'to-repeter': () => goTo('repeter'),
+  'go-block': (el) => showScreen('repeter', Number(el.dataset.b)),
+  'to-repeter': () => showScreen('repeter'),
   // lecture
   'play-all': () => playPassage(false),
   'play-mine': () => playPassage(true),

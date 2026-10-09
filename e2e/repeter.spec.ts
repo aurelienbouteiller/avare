@@ -107,3 +107,17 @@ test.describe('avec la voix de Frosine', () => {
     expect(await h.evaluate((el) => el.getAnimations().length)).toBe(0);
   });
 });
+
+test.describe('en mains libres', () => {
+  test.use({ saved: { s: { mode: 'repeter', block: 1, check: 'manual', hands: true } } });
+
+  test('révèle la réplique à la fin du temps, puis passe seul à la suivante', async ({ page }) => {
+    await page.goto('/');
+    await dockButton(page, 'Commencer').click();
+    await expect(page.locator('.ln.cur .timer')).toBeVisible();
+    // Temps de la réplique écoulé : elle est révélée, puis la réplique de Frosine suit.
+    await expect(page.locator('#status')).toHaveText("Vérifie à l'oreille.", { timeout: 10_000 });
+    await expect(page.locator('.ln.cur')).toContainText(LINES[H1[0]].t);
+    await expect(page.locator('#status')).toHaveText('Lis la réplique de Frosine.', { timeout: 10_000 });
+  });
+});

@@ -15,19 +15,21 @@ import { render } from '../ui/render';
 import { applyTheme } from './theme';
 
 const TEST_LINE = 'Ah, mon Dieu ! Que vous vous portez bien ! Et que vous avez là un vrai visage de santé !';
+const input = (id: string) => $<HTMLInputElement>(id);
+const select = (id: string) => $<HTMLSelectElement>(id);
 
 /* ---------- voix du téléphone ---------- */
 function fillVoices() {
-  const select = $<HTMLSelectElement>('#optVoice'),
+  const voiceSelect = select('#optVoice'),
     info = $('#voiceInfo');
   if (!TTS) {
-    litRender(html`<option>Indisponible</option>`, select);
-    select.disabled = true;
+    litRender(html`<option>Indisponible</option>`, voiceSelect);
+    voiceSelect.disabled = true;
     info.textContent = 'Ce navigateur ne lit pas le texte à voix haute.';
     return;
   }
   if (!hasVoices()) {
-    litRender(html`<option value="">Voix française par défaut</option>`, select);
+    litRender(html`<option value="">Voix française par défaut</option>`, voiceSelect);
     info.textContent = 'Utilisée seulement en secours.';
     return;
   }
@@ -38,7 +40,7 @@ function fillVoices() {
       (v, k) =>
         html`<option value=${v.voiceURI} .selected=${v.voiceURI === chosen?.voiceURI}>${v.name}${k === 0 ? ' (recommandée)' : ''}</option>`,
     ),
-    select,
+    voiceSelect,
   );
   info.textContent = 'Utilisée seulement en secours, si une voix enregistrée manque.';
 }
@@ -56,8 +58,6 @@ function watchVoices() {
 }
 
 /* ---------- valeurs affichées ---------- */
-const input = (id: string) => $<HTMLInputElement>(id);
-const select = (id: string) => $<HTMLSelectElement>(id);
 const showRate = () => {
   $('#rateVal').textContent = `×${settings.rate.toFixed(2)}`;
 };

@@ -5,11 +5,11 @@ import { save, settings } from '../storage/settings';
 import { type BeforeInstallPromptEvent, isOneOf, MODES } from '../types';
 import { $, closest } from '../ui/dom';
 import { render } from '../ui/render';
-import { applyPlanPreset, goTo, runAction, setSessionOption, tapLine } from './actions';
+import { applyPlanPreset, runAction, setSessionOption, showScreen, tapLine } from './actions';
 
 function onTabClick(e: Event) {
   const t = closest(e, '[data-mode]');
-  if (t && isOneOf(MODES, t.dataset.mode)) goTo(t.dataset.mode);
+  if (t && isOneOf(MODES, t.dataset.mode)) showScreen(t.dataset.mode);
 }
 
 function onChipClick(e: Event) {
