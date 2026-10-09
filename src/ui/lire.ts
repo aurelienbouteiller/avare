@@ -26,7 +26,11 @@ function readLine(i: number) {
 // Pendant la lecture du passage, chaque nouvelle réplique est centrée une fois.
 let lastCentered = -1;
 function followPassage() {
-  if (!state.passage || state.playingIdx === lastCentered) return;
+  if (!state.passage) {
+    lastCentered = -1;
+    return;
+  }
+  if (state.playingIdx === lastCentered) return;
   lastCentered = state.playingIdx;
   document.querySelector('.ln.playing')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
 }

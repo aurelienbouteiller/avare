@@ -62,6 +62,12 @@
     width: 100%;
   }
 }
+/* Sans animation (réglage du système), la barre est pleine d'emblée. */
+@media (prefers-reduced-motion: reduce) {
+  .timer i {
+    width: 100%;
+  }
+}
 
 /* préparation de la séance */
 .meter {

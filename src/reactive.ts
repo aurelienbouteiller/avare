@@ -24,7 +24,7 @@ export function reactive<T extends object>(initial: T): T {
 /**
  * Lance `run` tout de suite, puis à chaque changement des signaux qu'il a lus. Les changements sont regroupés
  * jusqu'à la fin de la tâche en cours : une action qui écrit plusieurs champs ne relance `run` qu'une fois,
- * sur un état cohérent.
+ * sur un état cohérent. Une erreur dans `run` est signalée sans couper le suivi : il repart au changement suivant.
  */
 export function watch(run: () => void) {
   let queued = false;
@@ -36,7 +36,11 @@ export function watch(run: () => void) {
     dispose = effect(() => {
       if (first) {
         first = false;
-        run();
+        try {
+          run();
+        } catch (e) {
+          console.error(e);
+        }
       } else if (!queued) {
         queued = true;
         queueMicrotask(track);

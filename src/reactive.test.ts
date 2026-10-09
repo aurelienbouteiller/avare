@@ -32,6 +32,21 @@ describe('reactive et watch', () => {
     expect(runs).toBe(3);
   });
 
+  it('continue de suivre après une erreur', async () => {
+    const s = reactive({ a: 1 });
+    const seen: number[] = [];
+    const quiet = console.error;
+    console.error = () => {};
+    watch(() => {
+      if (s.a === 1) throw new Error('rendu impossible');
+      seen.push(s.a);
+    });
+    console.error = quiet;
+    s.a = 2;
+    await tick();
+    expect(seen).toEqual([2]);
+  });
+
   it('reste sérialisable', () => {
     expect(JSON.stringify(reactive({ a: 1, b: 'x' }))).toBe('{"a":1,"b":"x"}');
   });
