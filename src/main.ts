@@ -343,6 +343,20 @@ $('#btnResetRec').addEventListener('click', async () => {
   }
 });
 
+/* ---------- version (commit et date du build) ---------- */
+const REPO = 'https://github.com/aurelienbouteiller/avare';
+const built = new Date(__APP_BUILD_DATE__).toLocaleString('fr-FR', {
+  day: 'numeric',
+  month: 'long',
+  year: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+});
+litRender(
+  html`Version ${__APP_COMMIT__ ? html`<a href="${REPO}/commit/${__APP_COMMIT__}" target="_blank" rel="noopener">${__APP_COMMIT__.slice(0, 7)}</a>` : 'inconnue'}, construite le ${built}.`,
+  $('#versionInfo'),
+);
+
 /* ---------- démarrage ---------- */
 if (TTS) {
   const lv = () => loadVoices(fillVoices);

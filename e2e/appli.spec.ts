@@ -1,3 +1,4 @@
+import { execSync } from 'node:child_process';
 import { expect, stored, tab, test } from './fixtures';
 
 test('applique le thème choisi dès le chargement suivant', async ({ page }) => {
@@ -29,4 +30,14 @@ test('fonctionne hors ligne une fois chargée', async ({ page, context }) => {
   await expect(page.locator('.bhead h2')).toHaveText('Ta santé');
   await page.getByRole('button', { name: 'Réglages' }).click();
   await expect(page.locator('#offlineInfo')).toContainText('Disponible hors ligne');
+});
+
+test('affiche le commit construit dans les réglages', async ({ page }) => {
+  const sha = execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Réglages' }).click();
+  const link = page.locator('#versionInfo a');
+  await expect(link).toHaveText(sha.slice(0, 7));
+  await expect(link).toHaveAttribute('href', `https://github.com/aurelienbouteiller/avare/commit/${sha}`);
+  await expect(page.locator('#versionInfo')).toContainText('construite le');
 });

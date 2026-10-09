@@ -1,9 +1,25 @@
+import { execSync } from 'node:child_process';
 import { VitePWA } from 'vite-plugin-pwa';
 import { defineConfig } from 'vitest/config';
 import { clips } from './plugins/clips.ts';
 
+// Commit construit : fourni par Netlify (COMMIT_REF), sinon lu dans git.
+function commit() {
+  if (process.env.COMMIT_REF) return process.env.COMMIT_REF;
+  try {
+    return execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim();
+  } catch {
+    return '';
+  }
+}
+
 export default defineConfig({
   base: './',
+  // Version affichée dans les réglages, pour vérifier qu'on a bien la dernière.
+  define: {
+    __APP_COMMIT__: JSON.stringify(commit()),
+    __APP_BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+  },
   plugins: [
     clips(),
     VitePWA({
