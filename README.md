@@ -12,7 +12,7 @@ Tout est stocké sur l'appareil (`localStorage` pour les résultats, IndexedDB p
 
 ## Développement
 
-Node 22.12 ou plus récent (voir `.nvmrc`). Le code est en TypeScript strict (TypeScript 7), lint et formatage par [Biome](https://biomejs.dev), tests avec Vitest.
+Node 24 ou plus récent (voir `.nvmrc`). Le code est en TypeScript strict (TypeScript 7), lint et formatage par [Biome](https://biomejs.dev), tests avec Vitest.
 
 ```sh
 npm install        # installe aussi le hook pre-commit (Biome sur les fichiers indexés, puis typecheck)
@@ -53,6 +53,6 @@ Le site est entièrement statique. HTTPS est obligatoire (micro, service worker)
 
 **Netlify** : importer le dépôt GitHub. `netlify.toml` fixe déjà la commande (`npm run build`), le dossier publié (`dist`) et la version de Node.
 
-**Cloudflare Pages** : Workers & Pages → Create → Pages → connecter le dépôt, préréglage *Vite* (ou commande `npm run build`, dossier de sortie `dist`), variables d'environnement `NODE_VERSION=22` et `SKIP_INSTALL_SIMPLE_GIT_HOOKS=1`.
+**Cloudflare Pages** : Workers & Pages → Create → Pages → connecter le dépôt, préréglage *Vite* (ou commande `npm run build`, dossier de sortie `dist`), variables d'environnement `NODE_VERSION=24` et `SKIP_INSTALL_SIMPLE_GIT_HOOKS=1`.
 
 Dans les deux cas, `public/_headers` règle le cache : fichiers hashés de `assets/` en cache permanent, `index.html` et `sw.js` toujours revalidés pour que les mises à jour arrivent tout de suite.
