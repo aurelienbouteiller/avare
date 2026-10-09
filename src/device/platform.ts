@@ -1,7 +1,7 @@
 /* ---------- capacités de l'appareil et voix disponibles ---------- */
 import CLIPS from 'virtual:clips';
 import { state } from '../state';
-import { S } from '../storage/settings';
+import { settings } from '../storage/settings';
 import type { Check } from '../types';
 
 /** Synthèse vocale du téléphone. */
@@ -17,14 +17,14 @@ export const REC = (HAS.F0?.size ?? 0) > 0;
 export function hasClip(bank: string, id: string) {
   return !!HAS[bank]?.has(id);
 }
-export const useRec = () => REC && S.src === 'rec';
+export const useRec = () => REC && settings.src === 'rec';
 /** Frosine peut-elle parler : voix enregistrées ou synthèse, si la voix est activée. */
-export const canVoice = () => S.tts && (useRec() || TTS);
+export const canVoice = () => settings.tts && (useRec() || TTS);
 
 /** Mode de vérification réellement utilisable, compte tenu de l'appareil et du réseau. */
 export function checkMode(): Check {
-  let c = S.check;
-  if (c === 'voix' && (!SR || state.VOICE_OFF || navigator.onLine === false)) c = 'manual';
+  let c = settings.check;
+  if (c === 'voix' && (!SR || state.voiceOff || navigator.onLine === false)) c = 'manual';
   if (c === 'rec' && !canRecord()) c = 'manual';
   return c;
 }

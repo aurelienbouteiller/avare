@@ -14,12 +14,12 @@ export async function startRecorder(i: number, tok: number): Promise<'started' |
   } catch {
     return 'denied';
   }
-  if (tok !== state.RUN || state.phase !== 'await') return 'skipped';
+  if (tok !== state.token || state.phase !== 'await') return 'skipped';
   const chunks: Blob[] = [];
   const r = new MediaRecorder(MIC);
   RECORDER = r;
   KEEP.set(r, false);
-  state.REC_SAVED = new Promise((res) => {
+  state.recSaved = new Promise((res) => {
     r.onstop = async () => {
       if (KEEP.get(r) && chunks.length) {
         const blob = new Blob(chunks, { type: r.mimeType || 'audio/webm' });
@@ -34,7 +34,7 @@ export async function startRecorder(i: number, tok: number): Promise<'started' |
     if (e.data?.size) chunks.push(e.data);
   };
   r.start();
-  state.RECORDING = true;
+  state.recording = true;
   return 'started';
 }
 export function stopRecorder(keep: boolean) {
@@ -43,7 +43,7 @@ export function stopRecorder(keep: boolean) {
     RECORDER.stop();
   }
   RECORDER = null;
-  state.RECORDING = false;
+  state.recording = false;
 }
 export function releaseMic() {
   if (MIC) {

@@ -21,7 +21,7 @@ import {
 import { REC, TTS } from './device/platform';
 import { engine, lockOff, playLine, playMine, playPassage, stop, stopSpeech } from './engine/rehearsal';
 import { state } from './state';
-import { clearStats, dropUrl, idbClear, idbKeys, RECS, S, save, URLS } from './storage/settings';
+import { clearStats, dropUrl, idbClear, idbKeys, RECS, save, settings, URLS } from './storage/settings';
 import {
   BANKS,
   type BeforeInstallPromptEvent,
@@ -43,7 +43,7 @@ const closest = (e: Event, sel: string) => (e.target as Element).closest<HTMLEle
 
 /* ---------- thème ---------- */
 function applyTheme() {
-  const t = S.theme || 'sombre',
+  const t = settings.theme || 'sombre',
     root = document.documentElement;
   if (t === 'auto') delete root.dataset.theme;
   else root.dataset.theme = t === 'clair' ? 'light' : 'dark';
@@ -66,7 +66,7 @@ $('.tabs').addEventListener('click', (e) => {
   const t = closest(e, '[data-mode]');
   if (!t || !isOneOf(MODES, t.dataset.mode)) return;
   stop();
-  S.mode = t.dataset.mode;
+  settings.mode = t.dataset.mode;
   save();
   render();
   window.scrollTo(0, 0);
@@ -75,22 +75,22 @@ $('#chips').addEventListener('click', (e) => {
   const t = closest(e, '[data-block]');
   if (!t) return;
   stop();
-  S.block = Number(t.dataset.block);
-  S.only = false;
+  settings.block = Number(t.dataset.block);
+  settings.only = false;
   save();
   render();
   t.scrollIntoView({ inline: 'nearest', block: 'nearest' });
 });
 function applyPreset(p: Preset) {
   stop();
-  S.mode = p.mode || 'repeter';
-  S.block = p.block || 0;
-  if (S.mode === 'repeter') {
-    S.mask = p.mask || 'coins';
-    S.order = p.order || 'scene';
-    S.only = !!p.only;
-    S.wild = !!p.wild;
-    if (p.check) S.check = p.check;
+  settings.mode = p.mode || 'repeter';
+  settings.block = p.block || 0;
+  if (settings.mode === 'repeter') {
+    settings.mask = p.mask || 'coins';
+    settings.order = p.order || 'scene';
+    settings.only = !!p.only;
+    settings.wild = !!p.wild;
+    if (p.check) settings.check = p.check;
   }
   save();
   render();
@@ -108,35 +108,35 @@ function act(a: string | undefined, el: HTMLElement) {
   else if (a === 'ok') engine.judge(true);
   else if (a === 'ko') engine.judge(false);
   else if (a === 'only-on') {
-    S.only = true;
+    settings.only = true;
     save();
     state.phase = 'idle';
     render();
   } else if (a === 'only-off') {
-    S.only = false;
+    settings.only = false;
     save();
     state.phase = 'idle';
     render();
   } else if (a === 'only-start') {
-    S.only = true;
+    settings.only = true;
     save();
     engine.start();
   } else if (a === 'only-off-start') {
-    S.only = false;
+    settings.only = false;
     save();
     engine.start();
   } else if (a === 'run-stop') engine.stop();
   else if (a === 'go-block') {
     stop();
-    S.mode = 'repeter';
-    S.block = Number(el.dataset.b);
-    S.only = false;
+    settings.mode = 'repeter';
+    settings.block = Number(el.dataset.b);
+    settings.only = false;
     save();
     render();
     window.scrollTo(0, 0);
   } else if (a === 'to-repeter') {
     stop();
-    S.mode = 'repeter';
+    settings.mode = 'repeter';
     save();
     render();
     window.scrollTo(0, 0);
@@ -149,12 +149,12 @@ function act(a: string | undefined, el: HTMLElement) {
   } else if (a === 'myrec') playMine(Number(el.dataset.i));
   else if (a === 'model') {
     stopSpeech();
-    const tok = state.RUN;
+    const tok = state.token;
     playModelH(Number(el.dataset.i), tok);
-  } else if (a === 'install' && state.INSTALL) {
-    state.INSTALL.prompt();
-    state.INSTALL.userChoice.finally(() => {
-      state.INSTALL = null;
+  } else if (a === 'install' && state.installPrompt) {
+    state.installPrompt.prompt();
+    state.installPrompt.userChoice.finally(() => {
+      state.installPrompt = null;
       render();
     });
   }
@@ -184,8 +184,8 @@ $('#script').addEventListener('click', (e) => {
   const dn = closest(e, '[data-done]');
   if (dn?.dataset.done) {
     const d = dn.dataset.done;
-    if (S.done[d]) delete S.done[d];
-    else S.done[d] = true;
+    if (settings.done[d]) delete settings.done[d];
+    else settings.done[d] = true;
     save();
     render();
     return;
@@ -200,18 +200,18 @@ $('#script').addEventListener('click', (e) => {
   tapLine(e);
 });
 function setOpt(k?: string, v?: string) {
-  if (k === 'mask' && isOneOf(MASK_IDS, v)) S.mask = v;
-  else if (k === 'order' && isOneOf(ORDERS, v)) S.order = v;
-  else if (k === 'check' && isOneOf(CHECKS, v)) S.check = v;
+  if (k === 'mask' && isOneOf(MASK_IDS, v)) settings.mask = v;
+  else if (k === 'order' && isOneOf(ORDERS, v)) settings.order = v;
+  else if (k === 'check' && isOneOf(CHECKS, v)) settings.check = v;
 }
 function tapLine(e: Event) {
-  if (S.mode === 'lire') {
+  if (settings.mode === 'lire') {
     const ln = closest(e, '.ln[data-i]');
     if (ln) {
       e.preventDefault();
       playLine(Number(ln.dataset.i));
     }
-  } else if (S.mode === 'repeter') {
+  } else if (settings.mode === 'repeter') {
     const ln = closest(e, '.ln[data-p]');
     if (ln) {
       e.preventDefault();
@@ -226,8 +226,8 @@ window.addEventListener('online', () => render());
 window.addEventListener('offline', () => render());
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
-  state.INSTALL = e as BeforeInstallPromptEvent;
-  if (S.mode === 'jour') render();
+  state.installPrompt = e as BeforeInstallPromptEvent;
+  if (settings.mode === 'jour') render();
 });
 
 /* ---------- réglages ---------- */
@@ -258,18 +258,18 @@ function fillVoices() {
   $('#voiceInfo').textContent = 'Utilisée seulement en secours, si une voix enregistrée manque.';
 }
 function syncDlg() {
-  $<HTMLInputElement>('#optTts').checked = S.tts;
-  $<HTMLInputElement>('#optRate').value = String(S.rate);
-  $('#rateVal').textContent = `×${(+S.rate).toFixed(2)}`;
-  $<HTMLInputElement>('#optWild').checked = S.wild;
-  $<HTMLInputElement>('#optHands').checked = S.hands;
-  $<HTMLSelectElement>('#optTol').value = S.tol || 'normale';
+  $<HTMLInputElement>('#optTts').checked = settings.tts;
+  $<HTMLInputElement>('#optRate').value = String(settings.rate);
+  $('#rateVal').textContent = `×${(+settings.rate).toFixed(2)}`;
+  $<HTMLInputElement>('#optWild').checked = settings.wild;
+  $<HTMLInputElement>('#optHands').checked = settings.hands;
+  $<HTMLSelectElement>('#optTol').value = settings.tol || 'normale';
   fillVoices();
   $('#fieldSrc').hidden = !REC;
-  $('#fieldFv').hidden = !REC || S.src !== 'rec';
-  $<HTMLSelectElement>('#optSrc').value = S.src;
-  $<HTMLSelectElement>('#optFv').value = S.fv || 'F0';
-  $('#offlineInfo').textContent = state.OFFLINE_READY
+  $('#fieldFv').hidden = !REC || settings.src !== 'rec';
+  $<HTMLSelectElement>('#optSrc').value = settings.src;
+  $<HTMLSelectElement>('#optFv').value = settings.fv || 'F0';
+  $('#offlineInfo').textContent = state.offlineReady
     ? 'Disponible hors ligne : tout fonctionne sans réseau, sauf la vérification à la voix.'
     : 'Préparation du mode hors ligne au premier chargement.';
   applyTheme();
@@ -283,62 +283,67 @@ $('#btnClose').addEventListener('click', () => {
 });
 dlg.addEventListener('close', () => render());
 $<HTMLInputElement>('#optTts').addEventListener('change', (e) => {
-  S.tts = (e.target as HTMLInputElement).checked;
+  settings.tts = (e.target as HTMLInputElement).checked;
   save();
 });
 $<HTMLInputElement>('#optRate').addEventListener('input', (e) => {
-  S.rate = Number((e.target as HTMLInputElement).value);
-  $('#rateVal').textContent = `×${S.rate.toFixed(2)}`;
+  settings.rate = Number((e.target as HTMLInputElement).value);
+  $('#rateVal').textContent = `×${settings.rate.toFixed(2)}`;
   save();
 });
 $<HTMLInputElement>('#optWild').addEventListener('change', (e) => {
-  S.wild = (e.target as HTMLInputElement).checked;
+  settings.wild = (e.target as HTMLInputElement).checked;
   save();
 });
 $<HTMLInputElement>('#optHands').addEventListener('change', (e) => {
-  S.hands = (e.target as HTMLInputElement).checked;
+  settings.hands = (e.target as HTMLInputElement).checked;
   save();
 });
 $('#optTol').addEventListener('change', (e) => {
   const v = (e.target as HTMLSelectElement).value;
-  if (isOneOf(TOLS, v)) S.tol = v;
+  if (isOneOf(TOLS, v)) settings.tol = v;
   save();
 });
 $('#optVoice').addEventListener('change', (e) => {
-  S.voice = (e.target as HTMLSelectElement).value;
+  settings.voice = (e.target as HTMLSelectElement).value;
   save();
 });
 $('#optSrc').addEventListener('change', (e) => {
   const v = (e.target as HTMLSelectElement).value;
-  if (isOneOf(SRCS, v)) S.src = v;
+  if (isOneOf(SRCS, v)) settings.src = v;
   save();
   syncDlg();
 });
 $('#optFv').addEventListener('change', (e) => {
   const v = (e.target as HTMLSelectElement).value;
-  if (isOneOf(BANKS, v)) S.fv = v;
+  if (isOneOf(BANKS, v)) settings.fv = v;
   save();
 });
 $('#optTheme').addEventListener('click', (e) => {
   const t = closest(e, '[data-val]');
   if (!t || !isOneOf(THEMES, t.dataset.val)) return;
-  S.theme = t.dataset.val;
+  settings.theme = t.dataset.val;
   save();
   applyTheme();
 });
 $('#btnTest').addEventListener('click', async () => {
   stopSpeech();
-  const tok = state.RUN;
+  const tok = state.token;
   const src = await frosineTestClip();
-  if (src) playClip(src, S.rate, tok);
+  if (src) playClip(src, settings.rate, tok);
   else if (TTS)
-    say('Ah, mon Dieu ! Que vous vous portez bien ! Et que vous avez là un vrai visage de santé !', S.rate, 1, tok);
+    say(
+      'Ah, mon Dieu ! Que vous vous portez bien ! Et que vous avez là un vrai visage de santé !',
+      settings.rate,
+      1,
+      tok,
+    );
 });
 $('#btnReset').addEventListener('click', () => {
   if (confirm('Effacer tous tes résultats (répliques justes et à revoir) ?')) {
     clearStats();
-    S.only = false;
-    S.daily = {};
+    settings.only = false;
+    settings.daily = {};
     save();
     stop();
   }
@@ -376,7 +381,7 @@ if (TTS) {
     speechSynthesis.onvoiceschanged = lv;
   }
 }
-if (!BLOCKS.some((b) => b.n === S.block)) S.block = 1;
+if (!BLOCKS.some((b) => b.n === settings.block)) settings.block = 1;
 idbKeys().then((ks) => {
   for (const k of ks) RECS.add(+k);
   render();
@@ -392,10 +397,10 @@ registerSW({
     });
   },
   onOfflineReady() {
-    state.OFFLINE_READY = true;
+    state.offlineReady = true;
   },
 });
-if (navigator.serviceWorker?.controller) state.OFFLINE_READY = true;
+if (navigator.serviceWorker?.controller) state.offlineReady = true;
 // Caches de l'ancien service worker manuel (souffleur-v3 : ~8 Mo d'audio en base64, polices Google).
 if ('caches' in window)
   caches

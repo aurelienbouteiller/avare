@@ -90,18 +90,18 @@ let saved: ReturnType<typeof parseSaved> = { s: { ...DEF, done: {}, daily: {} },
 try {
   saved = parseSaved(localStorage.getItem(KEY));
 } catch {}
-export const S: Settings = saved.s,
-  STATS: Record<number, Stat> = saved.st;
+export const settings: Settings = saved.s,
+  stats: Record<number, Stat> = saved.st;
 export function save() {
   try {
-    localStorage.setItem(KEY, JSON.stringify({ v: VERSION, s: S, st: STATS }));
+    localStorage.setItem(KEY, JSON.stringify({ v: VERSION, s: settings, st: stats }));
   } catch {}
 }
 export function clearStats() {
-  for (const k of Object.keys(STATS)) delete STATS[+k];
+  for (const k of Object.keys(stats)) delete stats[+k];
 }
 export function isMissed(i: number) {
-  return STATS[i]?.last === 'ko';
+  return stats[i]?.last === 'ko';
 }
 function pad(n: number) {
   return String(n).padStart(2, '0');

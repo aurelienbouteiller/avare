@@ -3,7 +3,7 @@ import { join } from 'lit-html/directives/join.js';
 import { BLOCKS, blockLines, LINES, MASKS, NOTES, PLAN } from '../data/scene';
 import { canRecord, canVoice, checkMode, SR } from '../device/platform';
 import { state } from '../state';
-import { fmtDate, isMissed, RECS, S, STATS, today } from '../storage/settings';
+import { fmtDate, isMissed, RECS, settings, stats, today } from '../storage/settings';
 import type { CompareResult, Line, Mask, Phase, Settings } from '../types';
 import { EQ, IC } from './icons';
 
@@ -13,7 +13,7 @@ type View = TemplateResult | typeof nothing;
 export const $ = <T extends HTMLElement = HTMLElement>(s: string) => document.querySelector(s) as T;
 const plural = (n: number, w: string) => `${n} ${w}${n > 1 ? 's' : ''}`;
 const RUN_PHASES: Phase[] = ['frosine', 'await', 'check', 'done'];
-const inRun = () => S.mode === 'repeter' && RUN_PHASES.includes(state.phase);
+const inRun = () => settings.mode === 'repeter' && RUN_PHASES.includes(state.phase);
 const words = (t: string) => t.split(/\s+/).filter(Boolean);
 
 function masked(t: string, mode: Mask) {
@@ -69,8 +69,8 @@ function resultView(res: CompareResult) {
 }
 function mastery(b: number) {
   const hs = LINES.map((_l, i) => i).filter((i) => LINES[i].w === 'H' && (b === 0 || LINES[i].b === b));
-  const ok = hs.filter((i) => STATS[i]?.last === 'ok').length,
-    ko = hs.filter((i) => STATS[i]?.last === 'ko').length;
+  const ok = hs.filter((i) => stats[i]?.last === 'ok').length,
+    ko = hs.filter((i) => stats[i]?.last === 'ko').length;
   return { n: hs.length, ok, ko };
 }
 function mbar(m: { n: number; ok: number; ko: number }) {
@@ -85,30 +85,33 @@ function runbar() {
   const upto = done ? state.seq.length : state.pos + 1;
   const n = state.seq.slice(0, upto).filter((i) => LINES[i].w === 'H').length;
   const pct = done ? 100 : Math.round((100 * (state.pos + 1)) / state.seq.length);
-  const lab = BLOCKS[S.block].label + (S.only ? ' · à revoir' : '') + (S.order === 'hasard' ? ' · au hasard' : '');
+  const lab =
+    BLOCKS[settings.block].label +
+    (settings.only ? ' · à revoir' : '') +
+    (settings.order === 'hasard' ? ' · au hasard' : '');
   return html`<button class="iconbtn" data-act="run-stop" aria-label=${done ? 'Fermer' : 'Arrêter la répétition'}>${IC.close}</button>
       <div class="where"><div class="bname">${lab}</div><div class="count">${done ? 'Terminé' : `Réplique ${Math.max(n, 1)} sur ${hs.length}`}</div></div>
-      <div class="tally" aria-label="${state.runRes.ok} justes, ${state.runRes.ko} à revoir"><span class="ok">${IC.check}${state.runRes.ok}</span><span class="ko">${IC.cross}${state.runRes.ko}</span></div>
+      <div class="tally" aria-label="${state.tally.ok} justes, ${state.tally.ko} à revoir"><span class="ok">${IC.check}${state.tally.ok}</span><span class="ko">${IC.cross}${state.tally.ko}</span></div>
       <div class="prog"><i style="width:${pct}%"></i></div>`;
 }
 function chips() {
   return BLOCKS.map((b) => {
     const m = mastery(b.n),
       miss = m.ko;
-    return html`<button class="chip" data-block=${b.n} aria-pressed=${S.block === b.n}><span class="cl">${b.label}${miss ? html`<span class="badge" aria-label="${miss} à revoir">${miss}</span>` : nothing}</span>${mbar(m)}</button>`;
+    return html`<button class="chip" data-block=${b.n} aria-pressed=${settings.block === b.n}><span class="cl">${b.label}${miss ? html`<span class="badge" aria-label="${miss} à revoir">${miss}</span>` : nothing}</span>${mbar(m)}</button>`;
   });
 }
 function renderTop() {
   const run = inRun();
   document.body.classList.toggle('run', run);
   document.querySelectorAll<HTMLElement>('.tabs button').forEach((b) => {
-    b.setAttribute('aria-selected', b.dataset.mode === S.mode ? 'true' : 'false');
+    b.setAttribute('aria-selected', b.dataset.mode === settings.mode ? 'true' : 'false');
   });
   const ch = $('#chips'),
     rb = $('#runbar');
   rb.hidden = !run;
   litRender(run ? runbar() : nothing, rb);
-  ch.hidden = S.mode === 'jour' || run;
+  ch.hidden = settings.mode === 'jour' || run;
   litRender(ch.hidden ? nothing : chips(), ch);
 }
 
@@ -119,8 +122,8 @@ function daysTo(d: string) {
 }
 function hero(idx: number, td: string, show: string, before: boolean) {
   const day = PLAN[idx],
-    done = !!S.done[day.d],
-    cnt = S.daily[td] || 0,
+    done = !!settings.done[day.d],
+    cnt = settings.daily[td] || 0,
     j = daysTo(show);
   const [first, ...rest] = day.go;
   return html`<section class="card hero">
@@ -134,7 +137,7 @@ function hero(idx: number, td: string, show: string, before: boolean) {
       </div></section>`;
 }
 function lateCard(td: string) {
-  const late = PLAN.filter((p) => p.d < td && !S.done[p.d]);
+  const late = PLAN.filter((p) => p.d < td && !settings.done[p.d]);
   if (!late.length) return nothing;
   return html`<section class="card late"><h3>À rattraper</h3>${late.map((p) => {
     const k = PLAN.indexOf(p);
@@ -153,11 +156,11 @@ function masteryCard() {
 }
 function programCard(td: string, show: string) {
   const days = PLAN.map((p) => {
-    const c = p.d === show ? 'show' : S.done[p.d] ? 'ok' : p.d === td ? 'now' : p.d < td ? 'late' : '';
+    const c = p.d === show ? 'show' : settings.done[p.d] ? 'ok' : p.d === td ? 'now' : p.d < td ? 'late' : '';
     return html`<div class="day ${c}${p.d === td ? ' now' : ''}" title=${p.t}>${fmtDate(p.d, { weekday: 'short' }).slice(0, 3)}<b>${+p.d.slice(8)}</b></div>`;
   });
   const cal = PLAN.map((p) => {
-    const st = S.done[p.d]
+    const st = settings.done[p.d]
       ? html`<span class="st ok">✓</span>`
       : p.d < td
         ? html`<span class="st late">à rattraper</span>`
@@ -181,7 +184,7 @@ function renderJour() {
     html`<div class="stack">
       ${after ? html`<div class="card"><h2>La représentation est passée</h2><p>Bravo ! Tu peux toujours répéter librement depuis Lire et Répéter.</p></div>` : idx >= 0 ? hero(idx, td, show, before) : nothing}
       ${after ? nothing : lateCard(td)}${masteryCard()}${programCard(td, show)}
-      ${state.INSTALL && !STANDALONE ? html`<div class="card install"><p>Installe le souffleur comme une appli : il marchera même sans réseau.</p><button class="btn-s" data-act="install">${IC.download}Installer</button></div>` : nothing}
+      ${state.installPrompt && !STANDALONE ? html`<div class="card install"><p>Installe le souffleur comme une appli : il marchera même sans réseau.</p><button class="btn-s" data-act="install">${IC.download}Installer</button></div>` : nothing}
     </div>`,
     $('#script'),
   );
@@ -202,61 +205,61 @@ function opts() {
     mr = canRecord(),
     off = navigator.onLine === false;
   const seg = (k: keyof Pick<Settings, 'mask' | 'order' | 'check'>, v: string, l: string, dis?: boolean) =>
-    html`<button class="seg" data-opt=${k} data-val=${v} aria-pressed=${S[k] === v} ?disabled=${!!dis}>${l}</button>`;
+    html`<button class="seg" data-opt=${k} data-val=${v} aria-pressed=${settings[k] === v} ?disabled=${!!dis}>${l}</button>`;
   const checkHelp =
-    S.check === 'voix'
+    settings.check === 'voix'
       ? off
         ? 'Hors ligne : la vérification à la voix a besoin du réseau, elle sera manuelle.'
         : 'Le téléphone écoute ta réplique et la compare au texte.'
-      : S.check === 'rec'
+      : settings.check === 'rec'
         ? 'Ta voix est enregistrée sur chaque réplique, pour la réécouter et la comparer au modèle.'
         : "Tu révèles ta réplique et tu dis toi-même si tu l'avais.";
-  return html`<div class="opt"><span class="lbl">Mes répliques</span><div class="segs">${MASKS.map((m) => seg('mask', m[0], m[1]))}</div><p class="muted">${MASK_HELP[S.mask]}</p></div>
+  return html`<div class="opt"><span class="lbl">Mes répliques</span><div class="segs">${MASKS.map((m) => seg('mask', m[0], m[1]))}</div><p class="muted">${MASK_HELP[settings.mask]}</p></div>
     <div class="opt"><span class="lbl">Ordre</span><div class="segs">${seg('order', 'scene', "Dans l'ordre")}${seg('order', 'hasard', 'Au hasard')}</div></div>
     <div class="opt"><span class="lbl">Vérification</span><div class="segs">${seg('check', 'manual', 'Manuelle')}${seg('check', 'voix', 'À la voix', !sr)}${seg('check', 'rec', "M'enregistrer", !mr)}</div>
     <p class="muted">${checkHelp}${!sr ? " La reconnaissance vocale n'est pas disponible sur ce navigateur." : ''}</p></div>`;
 }
 function setup() {
-  const ids = blockLines(S.block),
+  const ids = blockLines(settings.block),
     nH = ids.filter((i) => LINES[i].w === 'H').length,
     miss = ids.filter((i) => LINES[i].w === 'H' && isMissed(i)).length;
-  const n = NOTES[S.block],
-    B = BLOCKS[S.block],
-    m = mastery(S.block);
+  const n = NOTES[settings.block],
+    B = BLOCKS[settings.block],
+    m = mastery(settings.block);
   if (state.phase === 'empty')
     return html`<div class="stack"><div class="card"><h2>Rien à revoir ici</h2><p>Aucune réplique de ce passage n'est marquée « à revoir ». Bravo !</p><button class="btn-s" data-act="only-off">Reprendre tout le passage</button></div></div>`;
-  return html`<div class="stack"><section class="card"><p class="kicker">${S.block ? `Bloc ${S.block} sur 6` : 'Toute la scène'}</p><h2>${B.short}</h2>
+  return html`<div class="stack"><section class="card"><p class="kicker">${settings.block ? `Bloc ${settings.block} sur 6` : 'Toute la scène'}</p><h2>${B.short}</h2>
         <p class="obj">Objectif : ${n.obj}</p><p class="muted">${n.jeu}</p>
         <div class="meter">${mbar(m)}<b>${Math.round((100 * m.ok) / m.n)} %</b></div>
         <p class="muted" style="margin-top:.3rem">${m.ok} sur ${m.n} répliques sues${m.ko ? `, ${m.ko} à revoir` : ''}.</p></section>
       <section class="card"><h3>Ta séance</h3>${opts()}
-        ${miss || S.only ? html`<button class="toggle" data-act=${S.only ? 'only-off' : 'only-on'} aria-pressed=${S.only}><span>Seulement mes ${plural(miss, 'réplique')} à revoir<br><span class="muted" style="font-weight:500">${S.only ? 'Chacune avec la réplique de Frosine qui la précède.' : `Sinon, les ${nH} répliques du passage.`}</span></span><span class="sw"></span></button>` : nothing}
+        ${miss || settings.only ? html`<button class="toggle" data-act=${settings.only ? 'only-off' : 'only-on'} aria-pressed=${settings.only}><span>Seulement mes ${plural(miss, 'réplique')} à revoir<br><span class="muted" style="font-weight:500">${settings.only ? 'Chacune avec la réplique de Frosine qui la précède.' : `Sinon, les ${nH} répliques du passage.`}</span></span><span class="sw"></span></button>` : nothing}
       </section></div>`;
 }
 // Texte de la réplique d'Harpagon selon la phase : masqué, comparé à ce qui a été dit, ou en clair.
 function hBody(i: number, L: Line, cur: boolean) {
   if (cur && state.phase === 'await') {
     const voice = checkMode() === 'voix';
-    return html`${masked(L.t, state.curMask)}${state.LISTENING || voice ? html`<span class="heard">${state.HEARD ? `J'entends : « ${state.HEARD} »` : ''}</span>` : nothing}${S.hands && !voice ? html`<div class="timer"><i></i></div>` : nothing}`;
+    return html`${masked(L.t, state.curMask)}${state.listening || voice ? html`<span class="heard">${state.heard ? `J'entends : « ${state.heard} »` : ''}</span>` : nothing}${settings.hands && !voice ? html`<div class="timer"><i></i></div>` : nothing}`;
   }
-  if (cur && state.phase === 'check' && state.RESULT) return resultView(state.RESULT);
+  if (cur && state.phase === 'check' && state.result) return resultView(state.result);
   const mine =
-    cur && state.phase === 'check' && checkMode() === 'rec' && !S.hands
+    cur && state.phase === 'check' && checkMode() === 'rec' && !settings.hands
       ? html`<div class="mini">${RECS.has(i) ? html`<button data-act="myrec" data-i=${i}>${IC.play}Ma version</button>` : nothing}<button data-act="model" data-i=${i}>${IC.play}Le modèle</button></div>`
       : nothing;
   return html`${L.t}${mine}`;
 }
 function doneCard() {
-  const tot = state.runRes.ok + state.runRes.ko;
-  const ko = state.seq.filter((_i, p) => state.runMarks[p] === 'ko');
+  const tot = state.tally.ok + state.tally.ko;
+  const ko = state.seq.filter((_i, p) => state.marks[p] === 'ko');
   const start = (t: string) => {
     const w = t.split(/\s+/);
     return w.slice(0, 8).join(' ') + (w.length > 8 ? '…' : '');
   };
   return html`<section class="card" style="margin-top:.8rem"><h3>Fin du passage</h3>
-      ${tot ? html`<div class="score"><b>${state.runRes.ok} / ${tot}</b><span class="muted">${state.runRes.ok > 1 ? 'justes' : 'juste'}</span></div>` : html`<p>Passage terminé.</p>`}
+      ${tot ? html`<div class="score"><b>${state.tally.ok} / ${tot}</b><span class="muted">${state.tally.ok > 1 ? 'justes' : 'juste'}</span></div>` : html`<p>Passage terminé.</p>`}
       ${ko.length ? html`<p class="muted">À revoir :</p><ul class="missed">${ko.map((i) => html`<li>${start(LINES[i].t)}</li>`)}</ul>` : tot ? html`<p>Sans faute. Bravo !</p>` : nothing}
-      ${checkMode() === 'rec' || S.check === 'rec' ? html`<p class="muted">Réécoute tes enregistrements dans Lire, avec « Ma voix ».</p>` : nothing}</section>`;
+      ${checkMode() === 'rec' || settings.check === 'rec' ? html`<p class="muted">Réécoute tes enregistrements dans Lire, avec « Ma voix ».</p>` : nothing}</section>`;
 }
 function renderRepeter() {
   const el = $('#script');
@@ -274,7 +277,7 @@ function renderRepeter() {
     const cur = p === state.pos && state.phase !== 'done';
     const cue = curH && p === state.pos - 1 && L.w === 'F' && i === state.seq[state.pos] - 1;
     if (p > 0 && prev !== i - 1) out.push(html`<div class="exit">…</div>`);
-    if (S.order !== 'hasard' && (p === 0 || LINES[prev].b !== L.b)) out.push(blockHead(L.b, false));
+    if (settings.order !== 'hasard' && (p === 0 || LINES[prev].b !== L.b)) out.push(blockHead(L.b, false));
     out.push(exitNote(L));
     // « fresh » : animation d'entrée. lit crée un nœud neuf quand la réplique courante change (template différent
     // ou réplique ajoutée) et garde le même nœud sinon : l'animation ne joue qu'une fois par réplique.
@@ -289,7 +292,7 @@ function renderRepeter() {
       out.push(attrs(html`<span class="who"><span class="name">Frosine</span></span>${fText(L, cur)}`));
       continue;
     }
-    const rm = state.runMarks[p];
+    const rm = state.marks[p];
     const mark = rm
       ? html`<span class="mark ${rm}">${rm === 'ok' ? html`${IC.check}juste` : html`${IC.cross}à revoir`}</span>`
       : nothing;
@@ -302,8 +305,8 @@ function renderRepeter() {
   if (state.phase === 'done') out.push(doneCard());
   litRender(out, el);
   const key = `${state.pos}:${state.phase}`;
-  if (key !== state.LASTSCROLL) {
-    state.LASTSCROLL = key;
+  if (key !== state.lastScroll) {
+    state.lastScroll = key;
     const c = el.querySelector('.ln.cur') || el.lastElementChild;
     if (c) {
       const smooth = !matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -314,7 +317,7 @@ function renderRepeter() {
 
 /* ---------- Lire ---------- */
 function renderLire(scrollToPlaying?: boolean) {
-  const ids = blockLines(S.block);
+  const ids = blockLines(settings.block);
   const out = ids.map((i, k) => {
     const L = LINES[i],
       playing = state.playingIdx === i,
@@ -334,8 +337,8 @@ function renderLire(scrollToPlaying?: boolean) {
   }
 }
 export function renderScript(scroll?: boolean) {
-  if (S.mode === 'jour') renderJour();
-  else if (S.mode === 'lire') renderLire(scroll);
+  if (settings.mode === 'jour') renderJour();
+  else if (settings.mode === 'lire') renderLire(scroll);
   else renderRepeter();
 }
 
@@ -346,16 +349,18 @@ const main = (act: string, body: unknown, cls = 'main') =>
   html`<button class="btn ${cls}" data-act=${act}>${body}</button>`;
 const live = (cls: string, l: string) => html`<span class=${cls}><span class="dot"></span>${l}</span>`;
 function dock(): [View | string, View] {
-  if (S.mode === 'lire') {
-    const hasMine = blockLines(S.block).some((i) => RECS.has(i));
+  if (settings.mode === 'lire') {
+    const hasMine = blockLines(settings.block).some((i) => RECS.has(i));
     return [
-      state.PASSAGE ? live('live', 'Lecture du passage') : "Touche une réplique pour l'entendre.",
-      html`${state.PASSAGE ? side('stop-all', IC.stop, 'Arrêter') : html`${side('play-all', IC.play, 'Écouter')}${hasMine ? side('play-mine', IC.mic, 'Ma voix') : nothing}`}${main('to-repeter', html`${hasMine ? 'Répéter' : 'Répéter ce passage'}${IC.arrow}`)}`,
+      state.passage ? live('live', 'Lecture du passage') : "Touche une réplique pour l'entendre.",
+      html`${state.passage ? side('stop-all', IC.stop, 'Arrêter') : html`${side('play-all', IC.play, 'Écouter')}${hasMine ? side('play-mine', IC.mic, 'Ma voix') : nothing}`}${main('to-repeter', html`${hasMine ? 'Répéter' : 'Répéter ce passage'}${IC.arrow}`)}`,
     ];
   }
   switch (state.phase) {
     case 'idle': {
-      const bits = [S.hands && 'Mains libres', S.wild && 'Partenaire imprévisible'].filter((x) => x !== false);
+      const bits = [settings.hands && 'Mains libres', settings.wild && 'Partenaire imprévisible'].filter(
+        (x) => x !== false,
+      );
       return [html`${bits.map((x) => html`<span class="pill">${x}</span>`)}`, main('start', html`${IC.play}Commencer`)];
     }
     case 'empty':
@@ -367,47 +372,47 @@ function dock(): [View | string, View] {
       ];
     case 'await':
       return [
-        state.LISTENING
+        state.listening
           ? live('live', "J'écoute, dis ta réplique")
-          : state.RECORDING
+          : state.recording
             ? live('rec', 'Enregistrement')
             : 'À toi. Dis ta réplique à voix haute.',
         html`${side('replay', IC.replay, 'Réécouter')}${side('hint', IC.hint, 'Indice')}${main('reveal', html`${IC.eye}Révéler`, 'gold')}`,
       ];
     case 'check': {
       const next = main('skip', html`Suivant${IC.arrow}`);
-      if (state.RESULT) {
-        const pct = Math.round(state.RESULT.score * 100),
-          ok = state.runMarks[state.pos] === 'ok';
+      if (state.result) {
+        const pct = Math.round(state.result.score * 100),
+          ok = state.marks[state.pos] === 'ok';
         return [
           html`${ok ? html`<span class="mark ok">${IC.check}Juste</span>` : html`<span class="mark ko">${IC.cross}À revoir</span>`} ${pct} % des mots retrouvés`,
-          S.hands
+          settings.hands
             ? html`${side('stop', IC.stop, 'Arrêter')}${next}`
             : html`${side('retry', IC.replay, 'Réessayer')}${side('flip', ok ? IC.cross : IC.check, ok ? 'Compter faux' : 'Compter juste')}${next}`,
         ];
       }
-      if (S.hands) return ["Vérifie à l'oreille.", html`${side('stop', IC.stop, 'Arrêter')}${next}`];
+      if (settings.hands) return ["Vérifie à l'oreille.", html`${side('stop', IC.stop, 'Arrêter')}${next}`];
       return [
         "Tu l'avais ?",
         html`${main('ko', html`${IC.cross}À revoir`, 'ko')}${main('ok', html`${IC.check}Je l'avais`, 'ok')}`,
       ];
     }
     case 'done': {
-      const miss = blockLines(S.block).filter((i) => LINES[i].w === 'H' && isMissed(i)).length;
+      const miss = blockLines(settings.block).filter((i) => LINES[i].w === 'H' && isMissed(i)).length;
       return [
         miss ? `${plural(miss, 'réplique')} à revoir dans ce passage.` : 'Aucune réplique à revoir dans ce passage.',
-        html`${miss && !S.only ? side('only-start', IC.cross, 'Les ratées') : nothing}${main(S.only ? 'only-off-start' : 'start', html`${IC.replay}${S.only ? 'Tout le passage' : 'Recommencer'}`)}`,
+        html`${miss && !settings.only ? side('only-start', IC.cross, 'Les ratées') : nothing}${main(settings.only ? 'only-off-start' : 'start', html`${IC.replay}${settings.only ? 'Tout le passage' : 'Recommencer'}`)}`,
       ];
     }
   }
 }
 export function renderDock() {
-  const jour = S.mode === 'jour';
+  const jour = settings.mode === 'jour';
   document.body.classList.toggle('nodock', jour);
   $('#dock').hidden = jour;
   if (jour) return;
   const [s, b] = dock();
-  const status = state.NOTICE ? html`${state.NOTICE}${s === nothing || s === '' ? '' : html` ${s}`}` : s;
+  const status = state.notice ? html`${state.notice}${s === nothing || s === '' ? '' : html` ${s}`}` : s;
   litRender(status, $('#status'));
   litRender(b, $('#row'));
 }

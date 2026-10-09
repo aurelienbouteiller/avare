@@ -27,14 +27,14 @@ export function listen(expected: string, tok: number, h: ListenHandlers) {
     silenceT: ReturnType<typeof setTimeout> | undefined,
     hardT: ReturnType<typeof setTimeout> | undefined,
     r: SpeechRecognition | null = null;
-  state.LISTENING = true;
+  state.listening = true;
   h.onStart();
   const text = () => fixNames(`${prev} ${sess}`.replace(/\s+/g, ' ').trim());
   const end = () => {
     done = true;
     clearTimeout(silenceT);
     clearTimeout(hardT);
-    state.LISTENING = false;
+    state.listening = false;
     try {
       r?.abort();
     } catch {}
@@ -43,8 +43,8 @@ export function listen(expected: string, tok: number, h: ListenHandlers) {
     if (done) return;
     const said = text();
     end();
-    state.LISTEN = null;
-    if (tok !== state.RUN) return;
+    state.listener = null;
+    if (tok !== state.token) return;
     h.onDone(said);
   };
   const open = () => {
@@ -77,12 +77,12 @@ export function listen(expected: string, tok: number, h: ListenHandlers) {
             : '';
       if (notice) {
         end();
-        state.LISTEN = null;
+        state.listener = null;
         h.onUnavailable(notice);
       }
     };
     rec.onend = () => {
-      if (done || tok !== state.RUN) return;
+      if (done || tok !== state.token) return;
       prev = text();
       sess = '';
       const sc = compare(expected, text()).score;
@@ -101,6 +101,6 @@ export function listen(expected: string, tok: number, h: ListenHandlers) {
     }
   };
   hardT = setTimeout(finish, maxMs);
-  state.LISTEN = { abort: end };
+  state.listener = { abort: end };
   open();
 }

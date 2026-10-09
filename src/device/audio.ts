@@ -1,6 +1,6 @@
 import { LINES } from '../data/scene';
 import { state } from '../state';
-import { S } from '../storage/settings';
+import { settings } from '../storage/settings';
 import type { Line } from '../types';
 import { hasClip, TTS, useRec } from './platform';
 
@@ -29,7 +29,7 @@ export function sortedVoices() {
 }
 export function pickVoice() {
   if (!VOICES.length) return null;
-  return VOICES.find((v) => v.voiceURI === S.voice) || sortedVoices()[0];
+  return VOICES.find((v) => v.voiceURI === settings.voice) || sortedVoices()[0];
 }
 function chunk(t: string) {
   return t
@@ -72,11 +72,11 @@ export const wait = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
 export async function say(text: string, rate: number, pitch: number, tok: number) {
   const cs = chunk(text);
   for (let k = 0; k < cs.length; k++) {
-    if (tok !== state.RUN) return false;
+    if (tok !== state.token) return false;
     await sayOne(cs[k].t, rate, pitch);
     if (k < cs.length - 1) await wait(cs[k].pause / Math.max(rate, 0.6));
   }
-  return tok === state.RUN;
+  return tok === state.token;
 }
 
 /* ---------- voix enregistrées (public/audio/<voix>/L<ligne>_S<segment>.mp3) ---------- */
@@ -105,7 +105,7 @@ function frosineClip(bank: string, id: string) {
   return loadClip(hasClip(bank, id) ? bank : 'F0', id);
 }
 export function frosineTestClip() {
-  return useRec() ? frosineClip(S.fv || 'F0', 'L1_S0') : Promise.resolve(null);
+  return useRec() ? frosineClip(settings.fv || 'F0', 'L1_S0') : Promise.resolve(null);
 }
 // Précharge les clips des prochaines répliques pendant que la réplique courante est jouée.
 export function prefetch(idxs: number[], bank: string) {
@@ -126,7 +126,7 @@ const PLAYER: HTMLAudioElement & { mozPreservesPitch?: boolean; webkitPreservesP
 PLAYER.preload = 'auto';
 export function playClip(src: string, rate: number, tok: number) {
   return new Promise<boolean>((res) => {
-    if (tok !== state.RUN) {
+    if (tok !== state.token) {
       res(false);
       return;
     }
@@ -137,7 +137,7 @@ export function playClip(src: string, rate: number, tok: number) {
       done = true;
       clearTimeout(tm);
       PLAYER.onended = PLAYER.onerror = null;
-      res(ok && tok === state.RUN);
+      res(ok && tok === state.token);
     };
     PLAYER.onended = () => fin(true);
     PLAYER.onerror = () => fin(true);
@@ -167,10 +167,10 @@ export function stopClip() {
 }
 export async function playModelH(i: number, tok: number) {
   const hs = useRec() ? await loadClip('H0', `L${i}_S0`) : null;
-  if (hs) return playClip(hs, S.rate, tok);
-  if (TTS) return say(LINES[i].t, 0.95 * S.rate, 0.9, tok);
+  if (hs) return playClip(hs, settings.rate, tok);
+  if (TTS) return say(LINES[i].t, 0.95 * settings.rate, 0.9, tok);
   await wait(2000);
-  return tok === state.RUN;
+  return tok === state.token;
 }
 // onSeg : appelé avec l'indice du segment en cours, puis -1 à la fin de la réplique.
 export async function playFrosineLine(
@@ -184,7 +184,7 @@ export async function playFrosineLine(
 ) {
   const segs = L.segs ?? [];
   for (const [k, s] of segs.entries()) {
-    if (tok !== state.RUN) return false;
+    if (tok !== state.token) return false;
     onSeg(k);
     if (s.d !== undefined) {
       await wait(1700 / Math.max(rate, 0.6));
@@ -195,10 +195,10 @@ export async function playFrosineLine(
       ? await playClip(src, rate, tok)
       : TTS
         ? await say(s.t, rate, pitch, tok)
-        : await wait(1500).then(() => tok === state.RUN);
+        : await wait(1500).then(() => tok === state.token);
     if (!ok) return false;
     if (src) await wait(120);
   }
   onSeg(-1);
-  return tok === state.RUN;
+  return tok === state.token;
 }

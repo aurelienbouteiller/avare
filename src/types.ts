@@ -92,29 +92,29 @@ export interface BeforeInstallPromptEvent extends Event {
 }
 export interface RuntimeState {
   /** Jeton de séquence : toute lecture en cours s'arrête quand il change. */
-  RUN: number;
+  token: number;
   seq: number[];
   pos: number;
   phase: Phase;
   curMask: Mask;
-  runRes: { ok: number; ko: number };
-  runMarks: Record<number, Mark>;
+  tally: { ok: number; ko: number };
+  marks: Record<number, Mark>;
   timerId: ReturnType<typeof setTimeout> | undefined;
   playingIdx: number;
   /** Segment de la réplique de Frosine en cours de lecture (-1 : aucun). */
   seg: number;
-  RESULT: CompareResult | null;
-  NOTICE: string;
-  PASSAGE: boolean;
-  LASTSCROLL: string;
-  LISTEN: { abort(): void } | null;
-  LISTENING: boolean;
-  HEARD: string;
-  VOICE_OFF: boolean;
-  RECORDING: boolean;
-  REC_SAVED: Promise<void>;
-  INSTALL: BeforeInstallPromptEvent | null;
-  OFFLINE_READY: boolean;
+  result: CompareResult | null;
+  notice: string;
+  passage: boolean;
+  lastScroll: string;
+  listener: { abort(): void } | null;
+  listening: boolean;
+  heard: string;
+  voiceOff: boolean;
+  recording: boolean;
+  recSaved: Promise<void>;
+  installPrompt: BeforeInstallPromptEvent | null;
+  offlineReady: boolean;
 }
 
 /** Vrai si `v` fait partie de la liste de valeurs autorisées. */
