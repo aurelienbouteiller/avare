@@ -73,13 +73,13 @@ $('#script').addEventListener('click',e=>{
   const g=e.target.closest('[data-go]'); if(g){ const [d,k]=g.dataset.go.split(':').map(Number); applyPreset(PLAN[d].go[k].p); return; }
   const dn=e.target.closest('[data-done]'); if(dn){ const d=dn.dataset.done; if(S.done[d]) delete S.done[d]; else S.done[d]=true; save(); render(); return; }
   const o=e.target.closest('[data-opt]'); if(o){ S[o.dataset.opt]=o.dataset.val; save(); render(); return; }
-  if(S.mode!=='lire') return;
-  const ln=e.target.closest('.ln[data-i]'); if(ln) playLine(+ln.dataset.i);
+  tapLine(e);
 });
-$('#script').addEventListener('keydown',e=>{
-  if(S.mode!=='lire' || (e.key!=='Enter' && e.key!==' ')) return;
-  const ln=e.target.closest('.ln[data-i]'); if(ln){ e.preventDefault(); playLine(+ln.dataset.i); }
-});
+function tapLine(e){
+  if(S.mode==='lire'){ const ln=e.target.closest('.ln[data-i]'); if(ln){ e.preventDefault(); playLine(+ln.dataset.i); } }
+  else if(S.mode==='repeter'){ const ln=e.target.closest('.ln[data-p]'); if(ln){ e.preventDefault(); engine.goTo(+ln.dataset.p); } }
+}
+$('#script').addEventListener('keydown',e=>{ if(e.key==='Enter' || e.key===' ') tapLine(e); });
 window.addEventListener('online',()=>render());
 window.addEventListener('offline',()=>render());
 window.addEventListener('beforeinstallprompt',e=>{ e.preventDefault(); state.INSTALL=e; if(S.mode==='jour') render(); });

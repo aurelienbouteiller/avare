@@ -111,8 +111,9 @@ function flip(){ record(state.runMarks[state.pos]!=='ok'); render(); }
 function retry(){ stopSpeech(); beginH(); }
 function hint(){ const order=MASKS.map(m=>m[0]); const k=order.indexOf(state.curMask); state.curMask=order[Math.min(k+1,order.length-1)]; renderScript(); }
 function replay(){ let j=state.pos; while(j>=0 && LINES[state.seq[j]].w!=='F') j--; if(j<0) return; state.pos=j-1; next(); }
+function goTo(p){ if(p<0 || p>=state.seq.length) return; state.pos=p-1; next(); }
 export function stop(){ stopSpeech(); state.phase='idle'; lockOff(); releaseMic(); render(); }
-export const engine = { start, stop, next, reveal, hint, replay, retry, flip, judge };
+export const engine = { start, stop, next, reveal, hint, replay, retry, flip, judge, goTo };
 
 /* ---------- lecture de passages (onglet Lire) ---------- */
 export async function playPassage(mine){

@@ -164,8 +164,10 @@ function renderRepeter(){
     if(p>0 && prev!==i-1) h+=`<div class="exit">…</div>`;
     if(S.order!=='hasard' && (p===0 || LINES[prev].b!==L.b)) h+=blockHead(L.b,false);
     h+=exitNote(L);
-    const cls=`ln ${L.w}${cur?' cur'+(fresh?' fresh':''):cue?' cue':' past'}`;
-    if(L.w==='F'){ h+=`<div class="${cls}"><span class="who"><span class="name">Frosine</span></span>${fText(L)}</div>`; continue; }
+    const cls=`ln ${L.w}${cur?' cur'+(fresh?' fresh':''):(cue?' cue':' past')+' tap'}`;
+    // Réplique déjà passée : la toucher reprend la répétition à cet endroit.
+    const back = cur ? '' : ` data-p="${p}" role="button" tabindex="0" aria-label="Reprendre à cette réplique de ${L.w==='H'?'Harpagon':'Frosine'}"`;
+    if(L.w==='F'){ h+=`<div class="${cls}"${back}><span class="who"><span class="name">Frosine</span></span>${fText(L)}</div>`; continue; }
     const rm=state.runMarks[p];
     const mark = rm ? `<span class="mark ${rm}">${rm==='ok'?IC.check+'juste':IC.cross+'à revoir'}</span>` : '';
     let body;
@@ -179,7 +181,7 @@ function renderRepeter(){
       body = esc(L.t);
       if(cur && state.phase==='check' && checkMode()==='rec' && !S.hands) body += `<div class="mini">${RECS.has(i)?`<button data-act="myrec" data-i="${i}">${IC.play}Ma version</button>`:''}<button data-act="model" data-i="${i}">${IC.play}Le modèle</button></div>`;
     }
-    h+=`<div class="${cls}"><span class="who"><span class="name">${cur?'À toi · ':''}Harpagon</span>${mark}</span>${body}</div>`;
+    h+=`<div class="${cls}"${back}><span class="who"><span class="name">${cur?'À toi · ':''}Harpagon</span>${mark}</span>${body}</div>`;
   }
   if(state.phase==='done'){
     const tot=state.runRes.ok+state.runRes.ko;
