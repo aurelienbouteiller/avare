@@ -21,16 +21,16 @@ export default defineConfig({
         icons: [
           { src: 'icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
           { src: 'icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any' },
-          { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' }
-        ]
+          { src: 'icons/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+        ],
       },
       workbox: {
         // Tout est précaché (audio compris) : l'appli fonctionne hors ligne, et chaque fichier
         // porte sa propre révision, donc une mise à jour ne re-télécharge que ce qui a changé.
         globPatterns: ['**/*.{html,js,css,woff2,png,mp3}'],
         cleanupOutdatedCaches: true,
-        navigateFallback: 'index.html'
-      }
-    })
-  ]
+        navigateFallback: 'index.html',
+      },
+    }),
+  ],
 });
