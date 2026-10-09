@@ -18,10 +18,20 @@ export abstract class Component extends LitElement {
 
   protected override update(changed: PropertyValues) {
     this.#stop();
+    // L'erreur d'un rendu est relancée hors du suivi : Lit doit la voir pour accepter le rendu suivant,
+    // et les signaux lus avant elle restent suivis.
+    let failed: { error: unknown } | undefined;
     this.#stop = track(
-      () => super.update(changed),
+      () => {
+        try {
+          super.update(changed);
+        } catch (error) {
+          failed = { error };
+        }
+      },
       () => this.requestUpdate(),
     );
+    if (failed) throw failed.error;
   }
 
   override connectedCallback() {
