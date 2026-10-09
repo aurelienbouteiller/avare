@@ -4,9 +4,9 @@ import { dropUrl, idbPut, RECS, S, save } from './store';
 
 /* ---------- enregistrement de ma voix ---------- */
 let MIC: MediaStream | null = null,
-  RECORDER: MediaRecorder | null = null,
-  // Décidé à l'arrêt : garder l'enregistrement (réplique révélée) ou le jeter (séquence interrompue).
-  keepRec = false;
+  RECORDER: MediaRecorder | null = null;
+// Décidé à l'arrêt de chaque enregistreur : garder la prise (réplique révélée) ou la jeter (séquence interrompue).
+const KEEP = new WeakMap<MediaRecorder, boolean>();
 export async function startRecorder(i: number, tok: number) {
   try {
     if (!MIC)
@@ -22,10 +22,10 @@ export async function startRecorder(i: number, tok: number) {
   const chunks: Blob[] = [];
   const r = new MediaRecorder(MIC);
   RECORDER = r;
-  keepRec = false;
+  KEEP.set(r, false);
   state.REC_SAVED = new Promise((res) => {
     r.onstop = async () => {
-      if (keepRec && chunks.length) {
+      if (KEEP.get(r) && chunks.length) {
         const blob = new Blob(chunks, { type: r.mimeType || 'audio/webm' });
         await idbPut(i, blob);
         RECS.add(i);
@@ -43,7 +43,7 @@ export async function startRecorder(i: number, tok: number) {
 }
 export function stopRecorder(keep: boolean) {
   if (RECORDER && RECORDER.state !== 'inactive') {
-    keepRec = keep;
+    KEEP.set(RECORDER, keep);
     RECORDER.stop();
   }
   RECORDER = null;
