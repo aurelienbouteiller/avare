@@ -39,7 +39,7 @@ export const TOLS = ['stricte', 'normale', 'souple'] as const;
 export const SRCS = ['rec', 'tts'] as const;
 export const BANKS = ['F0', 'F1', 'F2', 'F3'] as const;
 export const THEMES = ['sombre', 'clair', 'auto'] as const;
-type Mode = (typeof MODES)[number];
+export type Mode = (typeof MODES)[number];
 export type Mask = (typeof MASK_IDS)[number];
 type Order = (typeof ORDERS)[number];
 export type Check = (typeof CHECKS)[number];
@@ -70,7 +70,7 @@ export interface Settings {
   /** Nombre de répliques travaillées, par date AAAA-MM-JJ. */
   daily: Record<string, number>;
 }
-type Mark = 'ok' | 'ko';
+export type Mark = 'ok' | 'ko';
 export interface Stat {
   ok: number;
   ko: number;

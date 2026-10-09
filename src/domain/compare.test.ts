@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { compare, fixNames } from './compare';
+import { compare } from './compare';
+import { fixNames } from './names';
 
 describe('compare', () => {
   it('compte juste une réplique dite mot pour mot, sans ponctuation ni majuscules', () => {

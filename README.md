@@ -29,24 +29,22 @@ Un échec de typecheck ou de test fait échouer `npm run build`, donc le déploi
 
 ## Organisation
 
-Les imports circulaires sont interdits (règle Biome `noImportCycles`) : `listen`, `recorder` et `audio` signalent ce qui se passe par callbacks ou valeur de retour, et c'est `engine` qui met à jour l'affichage.
+Le code est rangé par couche. Chaque couche n'importe que les couches au-dessus d'elle dans le tableau, et les imports circulaires sont interdits (règle Biome `noImportCycles`). Les modules de `device/` signalent ce qui se passe par callbacks ou par valeur de retour, et c'est `engine/` qui met à jour l'affichage.
 
 | Chemin | Rôle |
 | --- | --- |
-| `index.html` | Coquille HTML (en-tête, barre de répétition, zone de texte, dock d'actions, navigation du bas, réglages) |
-| `src/main.ts` | Démarrage, interactions, réglages, enregistrement du service worker |
+| `src/types.ts`, `src/state.ts` | Types partagés et listes de valeurs autorisées, état d'exécution partagé (phase, jeton de séquence…) |
 | `src/data/scene.ts` | Texte de la scène, blocs, notes de jeu, plan de répétition |
-| `src/engine.ts` | Moteur de répétition et lecture des passages : seul module qui orchestre audio, écoute, enregistrement et rendu |
-| `src/platform.ts` | Capacités de l'appareil (synthèse, reconnaissance vocale, micro) et voix enregistrées disponibles |
-| `src/audio.ts` | Voix enregistrées (chargement, préchargement) et voix du téléphone |
-| `src/compare.ts` | Comparaison de la réplique dite avec le texte |
-| `src/listen.ts`, `src/recorder.ts` | Reconnaissance vocale, enregistrement de ta voix |
-| `src/render.ts` | Rendu des écrans (templates lit-html), à partir des données et de l'état seulement |
-| `src/icons.ts` | Icônes SVG intégrées (fonctionnent hors ligne) |
-| `src/store.ts`, `src/state.ts` | Données sauvegardées (validées au chargement), état d'exécution partagé |
-| `src/types.ts` | Types partagés et listes de valeurs autorisées |
+| `src/domain/` | Logique pure, sans DOM et testée : comparaison de la réplique dite (`compare`, `numbers`, `names`), ordre des répliques d'une séance (`sequence`), comptage et maîtrise (`stats`), répliques (`lines`), dates (`dates`) |
+| `src/storage/` | Données sur l'appareil : réglages et résultats validés au chargement (`settings`, localStorage), enregistrements de ta voix (`recordings`, IndexedDB) |
+| `src/device/` | Capacités de l'appareil (`platform`), voix du téléphone (`tts`), voix enregistrées (`clips`), lecteur audio (`player`), réplique dite par la meilleure voix disponible (`speak`), reconnaissance vocale (`listen`), micro (`recorder`), écran allumé (`wake-lock`) |
+| `src/ui/` | Rendu des écrans en templates lit-html, à partir des données et de l'état seulement : un fichier par zone (`top`, `jour`, `lire`, `repeter`, `dock`), morceaux partagés (`parts`), icônes SVG intégrées (`icons`) |
+| `src/engine/` | Orchestration : moteur de répétition (`rehearsal`), lecture des passages (`passage`), arrêt commun de tout son (`sound`) |
+| `src/app/` | Branchement de l'interface : actions des boutons (`actions`), évènements (`events`), réglages (`settings-dialog`), thème, service worker (`pwa`), version |
+| `src/main.ts` | Démarrage |
+| `index.html` | Coquille HTML (en-tête, barre de répétition, zone de texte, dock d'actions, navigation du bas, réglages) |
 | `plugins/clips.ts` | Plugin Vite : module `virtual:clips`, liste des MP3 présents dans `public/audio/` |
-| `*.test.ts` | Tests Vitest |
+| `*.test.ts` | Tests Vitest, à côté du module testé |
 | `e2e/` | Tests Playwright (profil Pixel 7, date figée) |
 | `public/audio/<voix>/L<réplique>_S<segment>.mp3` | Voix enregistrées : `F0` Denise, `F1` Vivienne, `F2` Charline, `F3` Ariane, `H0` Harpagon modèle |
 

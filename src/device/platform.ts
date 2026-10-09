@@ -12,12 +12,14 @@ export const SR: typeof SpeechRecognition | undefined = window.SpeechRecognition
 export const canRecord = () => !!(navigator.mediaDevices && window.MediaRecorder);
 
 /* voix enregistrées (public/audio/<voix>/L<ligne>_S<segment>.mp3) */
-const HAS: Record<string, Set<string>> = Object.fromEntries(Object.entries(CLIPS).map(([b, ids]) => [b, new Set(ids)]));
-export const REC = (HAS.F0?.size ?? 0) > 0;
+const clipsByBank: Record<string, Set<string>> = Object.fromEntries(
+  Object.entries(CLIPS).map(([b, ids]) => [b, new Set(ids)]),
+);
+export const RECORDED_VOICES = (clipsByBank.F0?.size ?? 0) > 0;
 export function hasClip(bank: string, id: string) {
-  return !!HAS[bank]?.has(id);
+  return !!clipsByBank[bank]?.has(id);
 }
-export const useRec = () => REC && settings.src === 'rec';
+export const useRec = () => RECORDED_VOICES && settings.src === 'rec';
 /** Frosine peut-elle parler : voix enregistrées ou synthèse, si la voix est activée. */
 export const canVoice = () => settings.tts && (useRec() || TTS);
 
