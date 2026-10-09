@@ -323,7 +323,7 @@ function parseSegs(t) {
     .map((s) => (s[0] === '{' ? { d: s.slice(1, -1) } : { t: s }));
 }
 export const LINES = [];
-(function () {
+(() => {
   let cb = 1;
   RAW.forEach((r) => {
     if (typeof r === 'number') {

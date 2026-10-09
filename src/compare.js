@@ -22,19 +22,19 @@ function numToFr(n) {
   const t = { 2: 'vingt', 3: 'trente', 4: 'quarante', 5: 'cinquante', 6: 'soixante' };
   const lt100 = (n) => {
     if (n < 17) return u[n];
-    if (n < 20) return 'dix ' + u[n - 10];
+    if (n < 20) return `dix ${u[n - 10]}`;
     const d = Math.floor(n / 10),
       r = n % 10;
-    if (d < 7) return t[d] + (r === 0 ? '' : r === 1 ? ' et un' : ' ' + u[r]);
-    if (d === 7) return 'soixante ' + (r === 1 ? 'et onze' : lt100(10 + r));
-    if (d === 8) return 'quatre vingt' + (r === 0 ? 's' : ' ' + u[r]);
-    return 'quatre vingt ' + lt100(10 + r);
+    if (d < 7) return t[d] + (r === 0 ? '' : r === 1 ? ' et un' : ` ${u[r]}`);
+    if (d === 7) return `soixante ${r === 1 ? 'et onze' : lt100(10 + r)}`;
+    if (d === 8) return `quatre vingt${r === 0 ? 's' : ` ${u[r]}`}`;
+    return `quatre vingt ${lt100(10 + r)}`;
   };
   const lt1000 = (n) => {
     const c = Math.floor(n / 100),
       r = n % 100;
     let s = '';
-    if (c) s = (c > 1 ? u[c] + ' ' : '') + 'cent' + (c > 1 && r === 0 ? 's' : '');
+    if (c) s = `${c > 1 ? `${u[c]} ` : ''}cent${c > 1 && r === 0 ? 's' : ''}`;
     if (r) s += (s ? ' ' : '') + lt100(r);
     return s || 'zero';
   };
@@ -42,7 +42,7 @@ function numToFr(n) {
   if (n < 1e6) {
     const m = Math.floor(n / 1000),
       r = n % 1000;
-    return (m > 1 ? lt1000(m) + ' ' : '') + 'mille' + (r ? ' ' + lt1000(r) : '');
+    return `${m > 1 ? `${lt1000(m)} ` : ''}mille${r ? ` ${lt1000(r)}` : ''}`;
   }
   return String(n);
 }
@@ -50,7 +50,7 @@ function norm(s) {
   s = String(s)
     .toLowerCase()
     .replace(/(\d)[\s\u00a0\u202f.](?=\d{3}\b)/g, '$1');
-  s = s.replace(/\d+/g, (m) => ' ' + numToFr(+m) + ' ');
+  s = s.replace(/\d+/g, (m) => ` ${numToFr(+m)} `);
   s = s
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
@@ -88,11 +88,12 @@ const HOMO = [
   ['tantot', 'tantôt', 'tant', 'tot', 'tôt'],
 ];
 const HMAP = {};
-HOMO.forEach((g, k) =>
-  g.forEach((w) => {
-    (HMAP[w] = HMAP[w] || []).push(k);
-  }),
-);
+for (const [k, g] of HOMO.entries()) {
+  for (const w of g) {
+    HMAP[w] ??= [];
+    HMAP[w].push(k);
+  }
+}
 function lev(a, b) {
   const m = a.length,
     n = b.length;
@@ -120,12 +121,12 @@ export function compare(expected, said) {
   const disp = expected.split(/\s+/).filter(Boolean);
   const E = [],
     own = [];
-  disp.forEach((w, k) =>
-    norm(w).forEach((t) => {
+  for (const [k, w] of disp.entries()) {
+    for (const t of norm(w)) {
       E.push(t);
       own.push(k);
-    }),
-  );
+    }
+  }
   const W = norm(said);
   const n = E.length,
     m = W.length;
@@ -145,7 +146,7 @@ export function compare(expected, said) {
     else j++;
   }
   const dispOk = disp.map(() => true);
-  E.forEach((t, k) => {
+  E.forEach((_t, k) => {
     if (!hit[k]) dispOk[own[k]] = false;
   });
   const nh = hit.filter(Boolean).length;

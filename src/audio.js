@@ -1,8 +1,8 @@
-import { S } from './store.js';
-import { state } from './state.js';
-import { LINES } from './data/scene.js';
 import CLIPS from './data/clips.json';
+import { LINES } from './data/scene.js';
 import { markSeg } from './render.js';
+import { state } from './state.js';
+import { S } from './store.js';
 
 /* ---------- voix du téléphone ---------- */
 export const TTS = 'speechSynthesis' in window && 'SpeechSynthesisUtterance' in window;
@@ -64,7 +64,7 @@ function sayOne(text, rate, pitch) {
       u.onerror = fin;
       tm = setTimeout(fin, (text.length * 95) / rate + 2500);
       speechSynthesis.speak(u);
-    } catch (e) {
+    } catch {
       fin();
     }
   });
@@ -86,16 +86,16 @@ export const REC = !!(HAS.F0 && HAS.F0.size > 0);
 export const useRec = () => REC && S.src === 'rec';
 export const canVoice = () => S.tts && (useRec() || TTS);
 function hasClip(bank, id) {
-  return !!(HAS[bank] && HAS[bank].has(id));
+  return !!HAS[bank]?.has(id);
 }
 // Chaque clip est chargé une fois en Blob : lecture immédiate, et pas de requêtes Range
 // (mal gérées par Safari iOS quand la réponse vient du service worker).
 const BLOBS = new Map();
 function loadClip(bank, id) {
   if (!hasClip(bank, id)) return Promise.resolve(null);
-  const key = bank + '/' + id;
+  const key = `${bank}/${id}`;
   if (!BLOBS.has(key)) {
-    const p = fetch(import.meta.env.BASE_URL + 'audio/' + key + '.mp3')
+    const p = fetch(`${import.meta.env.BASE_URL}audio/${key}.mp3`)
       .then((r) => {
         if (!r.ok) throw new Error(r.status);
         return r.blob();
@@ -121,10 +121,10 @@ export function prefetch(idxs, bank) {
   idxs.forEach((i) => {
     const L = LINES[i];
     if (!L) return;
-    if (L.w === 'H') loadClip('H0', 'L' + i + '_S0');
+    if (L.w === 'H') loadClip('H0', `L${i}_S0`);
     else
       L.segs.forEach((s, k) => {
-        if (!s.d) frosineClip(bank, 'L' + i + '_S' + k);
+        if (!s.d) frosineClip(bank, `L${i}_S${k}`);
       });
   });
 }
@@ -153,28 +153,28 @@ export function playClip(src, rate, tok) {
       PLAYER.preservesPitch = true;
       PLAYER.mozPreservesPitch = true;
       PLAYER.webkitPreservesPitch = true;
-    } catch (e) {}
+    } catch {}
     PLAYER.playbackRate = rate;
     PLAYER.onloadedmetadata = () => {
       const d = PLAYER.duration;
-      if (isFinite(d)) {
+      if (Number.isFinite(d)) {
         clearTimeout(tm);
         tm = setTimeout(() => fin(true), (d * 1000) / rate + 2500);
       }
     };
     tm = setTimeout(() => fin(true), 90000);
     const pr = PLAYER.play();
-    if (pr && pr.catch) pr.catch(() => fin(true));
+    if (pr?.catch) pr.catch(() => fin(true));
   });
 }
 export function stopClip() {
   try {
     PLAYER.pause();
     PLAYER.onended = PLAYER.onerror = null;
-  } catch (e) {}
+  } catch {}
 }
 export async function playModelH(i, tok) {
-  const hs = useRec() ? await loadClip('H0', 'L' + i + '_S0') : null;
+  const hs = useRec() ? await loadClip('H0', `L${i}_S0`) : null;
   if (hs) return playClip(hs, S.rate, tok);
   if (TTS) return say(LINES[i].t, 0.95 * S.rate, 0.9, tok);
   await wait(2000);
@@ -189,12 +189,12 @@ export async function playFrosineLine(L, i, tok, bank, rate, pitch) {
       await wait(1700 / Math.max(rate, 0.6));
       continue;
     }
-    const src = useRec() ? await frosineClip(bank, 'L' + i + '_S' + k) : null;
+    const src = useRec() ? await frosineClip(bank, `L${i}_S${k}`) : null;
     const ok = src
       ? await playClip(src, rate, tok)
       : TTS
         ? await say(s.t, rate, pitch, tok)
-        : (await wait(1500), tok === state.RUN);
+        : await wait(1500).then(() => tok === state.RUN);
     if (!ok) return false;
     if (src) await wait(120);
   }

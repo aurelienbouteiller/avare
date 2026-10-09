@@ -114,6 +114,7 @@ button:disabled {
   display: inline-flex;
 }
 [hidden] {
+  /* biome-ignore lint/complexity/noImportantStyles: [hidden] doit l'emporter sur tout display */
   display: none !important;
 }
 
@@ -1477,7 +1478,9 @@ select {
 }
 @media (prefers-reduced-motion: reduce) {
   * {
+    /* biome-ignore lint/complexity/noImportantStyles: réduction des animations demandée par le système */
     transition: none !important;
+    /* biome-ignore lint/complexity/noImportantStyles: idem */
     animation: none !important;
   }
 }

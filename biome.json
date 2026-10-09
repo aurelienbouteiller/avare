@@ -6,7 +6,15 @@
     "useIgnoreFile": true
   },
   "files": {
-    "includes": ["**", "!!**/dist", "!!**/dev-dist", "!!public", "!!.claude", "!package-lock.json", "!src/data/clips.json"]
+    "includes": [
+      "**",
+      "!!**/dist",
+      "!!**/dev-dist",
+      "!!public",
+      "!!.claude",
+      "!package-lock.json",
+      "!src/data/clips.json"
+    ]
   },
   "formatter": {
     "enabled": true,
@@ -33,5 +41,22 @@
         "organizeImports": "on"
       }
     }
-  }
+  },
+  "css": {
+    "linter": {
+      "enabled": true
+    }
+  },
+  "overrides": [
+    {
+      "includes": ["**/*.css"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noDescendingSpecificity": "off"
+          }
+        }
+      }
+    }
+  ]
 }

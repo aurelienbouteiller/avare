@@ -12,8 +12,8 @@
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
 <script>
 // Applique le thème enregistré avant le premier affichage, pour éviter un flash.
-try{ var t=(JSON.parse(localStorage.getItem('souffleur-harpagon-v1'))||{}).s||{}; t=t.theme;
-  if(t==='clair') document.documentElement.dataset.theme='light'; else if(t==='auto') delete document.documentElement.dataset.theme; }catch(e){}
+try{ const t=JSON.parse(localStorage.getItem('souffleur-harpagon-v1'))?.s?.theme;
+  if(t==='clair') document.documentElement.dataset.theme='light'; else if(t==='auto') delete document.documentElement.dataset.theme; }catch{}
 </script>
 <script type="module" src="/src/main.js"></script>
 </head>
@@ -25,7 +25,7 @@ try{ var t=(JSON.parse(localStorage.getItem('souffleur-harpagon-v1'))||{}).s||{}
         <h1>Le souffleur</h1>
         <p class="sub">Harpagon · <i>L'Avare</i>, acte II, scène 5</p>
       </div>
-      <button class="iconbtn" id="btnSettings" aria-label="Réglages" data-ic="gear"></button>
+      <button type="button" class="iconbtn" id="btnSettings" aria-label="Réglages" data-ic="gear"></button>
     </div>
     <div class="runbar" id="runbar" hidden></div>
     <nav class="chips" id="chips" aria-label="Blocs"></nav>
@@ -39,16 +39,16 @@ try{ var t=(JSON.parse(localStorage.getItem('souffleur-harpagon-v1'))||{}).s||{}
   <div class="row" id="row"></div>
 </footer>
 
-<nav class="tabs" role="tablist" aria-label="Écrans">
-  <button role="tab" data-mode="jour"><span data-ic="sun"></span><span>Aujourd'hui</span></button>
-  <button role="tab" data-mode="lire"><span data-ic="book"></span><span>Lire</span></button>
-  <button role="tab" data-mode="repeter"><span data-ic="mask"></span><span>Répéter</span></button>
-</nav>
+<div class="tabs" role="tablist" aria-label="Écrans">
+  <button type="button" role="tab" data-mode="jour"><span data-ic="sun"></span><span>Aujourd'hui</span></button>
+  <button type="button" role="tab" data-mode="lire"><span data-ic="book"></span><span>Lire</span></button>
+  <button type="button" role="tab" data-mode="repeter"><span data-ic="mask"></span><span>Répéter</span></button>
+</div>
 
 <dialog id="dlg" aria-labelledby="dlgTitle">
   <div class="dlghead">
     <h2 id="dlgTitle">Réglages</h2>
-    <button class="iconbtn" id="btnClose" aria-label="Fermer" data-ic="close"></button>
+    <button type="button" class="iconbtn" id="btnClose" aria-label="Fermer" data-ic="close"></button>
   </div>
 
   <section class="group">
@@ -75,7 +75,7 @@ try{ var t=(JSON.parse(localStorage.getItem('souffleur-harpagon-v1'))||{}).s||{}
     </div>
     <div class="field">
       <div>Tester la voix<small>La première réplique de Frosine.</small></div>
-      <button class="btn-s" id="btnTest"><span data-ic="play"></span>Écouter</button>
+      <button type="button" class="btn-s" id="btnTest"><span data-ic="play"></span>Écouter</button>
     </div>
   </section>
 
@@ -99,10 +99,11 @@ try{ var t=(JSON.parse(localStorage.getItem('souffleur-harpagon-v1'))||{}).s||{}
     <h3>Affichage</h3>
     <div class="field col">
       <div>Thème</div>
+      <!-- biome-ignore lint/a11y/useSemanticElements: un fieldset imposerait bordure et marges du navigateur -->
       <div class="segs full" id="optTheme" role="group" aria-label="Thème">
-        <button class="seg" data-val="sombre">Sombre</button>
-        <button class="seg" data-val="clair">Clair</button>
-        <button class="seg" data-val="auto">Auto</button>
+        <button type="button" class="seg" data-val="sombre">Sombre</button>
+        <button type="button" class="seg" data-val="clair">Clair</button>
+        <button type="button" class="seg" data-val="auto">Auto</button>
       </div>
     </div>
     <p class="tip" id="offlineInfo"></p>
@@ -111,8 +112,8 @@ try{ var t=(JSON.parse(localStorage.getItem('souffleur-harpagon-v1'))||{}).s||{}
   <section class="group danger">
     <h3>Zone sensible</h3>
     <div class="dlgrow">
-      <button class="btn-s ko" id="btnReset">Effacer mes résultats</button>
-      <button class="btn-s ko" id="btnResetRec">Effacer mes enregistrements</button>
+      <button type="button" class="btn-s ko" id="btnReset">Effacer mes résultats</button>
+      <button type="button" class="btn-s ko" id="btnResetRec">Effacer mes enregistrements</button>
     </div>
   </section>
 </dialog>

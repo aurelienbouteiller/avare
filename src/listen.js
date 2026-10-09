@@ -1,9 +1,9 @@
-import { S } from './store.js';
-import { state } from './state.js';
-import { LINES } from './data/scene.js';
 import { compare, fixNames } from './compare.js';
+import { LINES } from './data/scene.js';
 import { evaluate, handsTimer } from './engine.js';
 import { render, renderDock } from './render.js';
+import { state } from './state.js';
+import { S } from './store.js';
 
 /* ---------- reconnaissance vocale ---------- */
 export const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -24,15 +24,15 @@ export function listen(i, tok) {
   state.LISTENING = true;
   state.HEARD = '';
   renderDock();
-  const text = () => fixNames((prev + ' ' + sess).replace(/\s+/g, ' ').trim());
+  const text = () => fixNames(`${prev} ${sess}`.replace(/\s+/g, ' ').trim());
   const end = () => {
     done = true;
     clearTimeout(silenceT);
     clearTimeout(hardT);
     state.LISTENING = false;
     try {
-      r && r.abort();
-    } catch (e) {}
+      r?.abort();
+    } catch {}
   };
   const finish = () => {
     if (done) return;
@@ -52,7 +52,7 @@ export function listen(i, tok) {
       if (CUMULATIVE) sess = e.results[e.results.length - 1][0].transcript;
       else {
         sess = '';
-        for (let k = 0; k < e.results.length; k++) sess += ' ' + e.results[k][0].transcript;
+        for (let k = 0; k < e.results.length; k++) sess += ` ${e.results[k][0].transcript}`;
       }
       lastSpeech = Date.now();
       state.HEARD = text();
@@ -90,14 +90,14 @@ export function listen(i, tok) {
       if (Date.now() - t0 < maxMs && sc < 0.97 && Date.now() - lastSpeech < 4000) {
         try {
           open();
-        } catch (err) {
+        } catch {
           finish();
         }
       } else finish();
     };
     try {
       r.start();
-    } catch (err) {
+    } catch {
       finish();
     }
   };
@@ -107,5 +107,5 @@ export function listen(i, tok) {
 }
 function showHeard() {
   const el = document.querySelector('.ln.cur .heard');
-  if (el) el.textContent = state.HEARD ? "J'entends : « " + state.HEARD + ' »' : '';
+  if (el) el.textContent = state.HEARD ? `J'entends : « ${state.HEARD} »` : '';
 }

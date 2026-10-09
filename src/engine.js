@@ -1,11 +1,11 @@
-import { S, STATS, save, isMissed, today, recUrl } from './store.js';
-import { state } from './state.js';
-import { LINES, MASKS, TOL } from './data/scene.js';
+import { canVoice, playClip, playFrosineLine, playModelH, prefetch, stopClip, TTS, wait } from './audio.js';
 import { compare } from './compare.js';
-import { TTS, canVoice, wait, stopClip, playClip, playModelH, playFrosineLine, prefetch } from './audio.js';
-import { SR, listen } from './listen.js';
-import { startRecorder, stopRecorder, releaseMic } from './recorder.js';
+import { LINES, MASKS, TOL } from './data/scene.js';
+import { listen, SR } from './listen.js';
+import { releaseMic, startRecorder, stopRecorder } from './recorder.js';
 import { render, renderScript } from './render.js';
+import { state } from './state.js';
+import { isMissed, recUrl, S, STATS, save, today } from './store.js';
 
 /* ---------- écran allumé ---------- */
 let WL = null;
@@ -17,14 +17,14 @@ export async function lockOn() {
         WL = null;
       });
     }
-  } catch (e) {
+  } catch {
     WL = null;
   }
 }
 export function lockOff() {
   try {
     if (WL) WL.release();
-  } catch (e) {}
+  } catch {}
   WL = null;
 }
 document.addEventListener('visibilitychange', () => {
@@ -34,7 +34,7 @@ document.addEventListener('visibilitychange', () => {
 
 /* ---------- moteur de répétition ---------- */
 export function blockLines(b) {
-  return LINES.map((l, i) => i).filter((i) => b === 0 || LINES[i].b === b);
+  return LINES.map((_l, i) => i).filter((i) => b === 0 || LINES[i].b === b);
 }
 function shuffle(a) {
   for (let k = a.length - 1; k > 0; k--) {
@@ -72,7 +72,7 @@ export function stopSpeech() {
   if (TTS) {
     try {
       speechSynthesis.cancel();
-    } catch (e) {}
+    } catch {}
   }
   if (state.LISTEN) {
     state.LISTEN.abort();
@@ -157,7 +157,7 @@ export function handsTimer(L) {
     ms = 1600 + (words * 450) / Math.max(S.rate, 0.7);
   const bar = document.querySelector('.ln.cur .timer i');
   if (bar) {
-    bar.style.transitionDuration = ms + 'ms';
+    bar.style.transitionDuration = `${ms}ms`;
     requestAnimationFrame(() =>
       requestAnimationFrame(() => {
         bar.style.width = '100%';
@@ -308,7 +308,7 @@ export async function playPassage(mine, from) {
     const L = LINES[i];
     if (L.w === 'F') await playFrosineLine(L, i, tok, S.fv || 'F0', S.rate, 1);
     else {
-      let src = mine ? await recUrl(i) : null;
+      const src = mine ? await recUrl(i) : null;
       if (src) await playClip(src, 1, tok);
       else await playModelH(i, tok);
     }

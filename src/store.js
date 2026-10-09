@@ -28,16 +28,16 @@ try {
     Object.assign(S, o.s || {});
     Object.assign(STATS, o.st || {});
   }
-} catch (e) {}
+} catch {}
 S.done = S.done || {};
 S.daily = S.daily || {};
 export function save() {
   try {
     localStorage.setItem(KEY, JSON.stringify({ s: S, st: STATS }));
-  } catch (e) {}
+  } catch {}
 }
 export function clearStats() {
-  Object.keys(STATS).forEach((k) => delete STATS[k]);
+  for (const k of Object.keys(STATS)) delete STATS[k];
 }
 export function isMissed(i) {
   return !!(STATS[i] && STATS[i].last === 'ko');
@@ -47,10 +47,10 @@ function pad(n) {
 }
 export function today() {
   const d = new Date();
-  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 }
 export function fmtDate(d, opt) {
-  return new Date(d + 'T12:00:00').toLocaleDateString(
+  return new Date(`${d}T12:00:00`).toLocaleDateString(
     'fr-FR',
     opt || { weekday: 'long', day: 'numeric', month: 'long' },
   );
@@ -77,7 +77,7 @@ export async function idbPut(k, v) {
       t.oncomplete = res;
       t.onerror = () => rej(t.error);
     });
-  } catch (e) {}
+  } catch {}
 }
 async function idbGet(k) {
   try {
@@ -87,7 +87,7 @@ async function idbGet(k) {
       q.onsuccess = () => res(q.result || null);
       q.onerror = () => res(null);
     });
-  } catch (e) {
+  } catch {
     return null;
   }
 }
@@ -99,7 +99,7 @@ export async function idbKeys() {
       q.onsuccess = () => res(q.result || []);
       q.onerror = () => res([]);
     });
-  } catch (e) {
+  } catch {
     return [];
   }
 }
@@ -112,7 +112,7 @@ export async function idbClear() {
       t.oncomplete = res;
       t.onerror = res;
     });
-  } catch (e) {}
+  } catch {}
 }
 export const RECS = new Set(),
   URLS = {};

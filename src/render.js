@@ -1,16 +1,16 @@
-import { S, STATS, isMissed, today, fmtDate, RECS } from './store.js';
-import { state } from './state.js';
-import { LINES, BLOCKS, NOTES, PLAN, MASKS } from './data/scene.js';
-import { SR } from './listen.js';
 import { canVoice } from './audio.js';
+import { BLOCKS, LINES, MASKS, NOTES, PLAN } from './data/scene.js';
 import { blockLines, checkMode } from './engine.js';
-import { IC, EQ } from './icons.js';
+import { EQ, IC } from './icons.js';
+import { SR } from './listen.js';
+import { state } from './state.js';
+import { fmtDate, isMissed, RECS, S, STATS, today } from './store.js';
 
 /* ---------- rendu ---------- */
 export function markSeg(k) {
-  document
-    .querySelectorAll('.ln.cur [data-seg], .ln.playing [data-seg]')
-    .forEach((el) => el.classList.toggle('now', +el.dataset.seg === k));
+  document.querySelectorAll('.ln.cur [data-seg], .ln.playing [data-seg]').forEach((el) => {
+    el.classList.toggle('now', +el.dataset.seg === k);
+  });
 }
 export const $ = (s) => document.querySelector(s);
 export function esc(s) {
@@ -42,7 +42,7 @@ function masked(t, mode) {
       if (mode === 'moitie')
         return k % 2 === 0
           ? esc(w)
-          : esc(pre) + `<span class="blank" style="--n:${Math.min(n, 12)}"></span>` + esc(post);
+          : `${esc(pre)}<span class="blank" style="--n:${Math.min(n, 12)}"></span>${esc(post)}`;
       return esc(w);
     })
     .join(' ');
@@ -65,7 +65,7 @@ document.addEventListener(
   'toggle',
   (e) => {
     const d = e.target;
-    if (d.dataset && d.dataset.note) d.open ? openNotes.add(d.dataset.note) : openNotes.delete(d.dataset.note);
+    if (d.dataset?.note) d.open ? openNotes.add(d.dataset.note) : openNotes.delete(d.dataset.note);
   },
   true,
 );
@@ -78,12 +78,10 @@ function blockHead(b, full) {
 }
 function resultHtml(res) {
   const words = res.disp.map((w, k) => (res.dispOk[k] ? esc(w) : `<span class="miss">${esc(w)}</span>`)).join(' ');
-  return (
-    words + `<span class="heard">${res.said ? 'Tu as dit : « ' + esc(res.said) + ' »' : "Je n'ai rien entendu."}</span>`
-  );
+  return `${words}<span class="heard">${res.said ? `Tu as dit : « ${esc(res.said)} »` : "Je n'ai rien entendu."}</span>`;
 }
 function mastery(b) {
-  const hs = LINES.map((l, i) => i).filter((i) => LINES[i].w === 'H' && (b === 0 || LINES[i].b === b));
+  const hs = LINES.map((_l, i) => i).filter((i) => LINES[i].w === 'H' && (b === 0 || LINES[i].b === b));
   const ok = hs.filter((i) => STATS[i] && STATS[i].last === 'ok').length,
     ko = hs.filter((i) => STATS[i] && STATS[i].last === 'ko').length;
   return { n: hs.length, ok, ko };
@@ -97,9 +95,9 @@ const cap = (s) => s.replace(/^./, (c) => c.toUpperCase());
 function renderTop() {
   const run = inRun();
   document.body.classList.toggle('run', run);
-  document
-    .querySelectorAll('.tabs button')
-    .forEach((b) => b.setAttribute('aria-selected', b.dataset.mode === S.mode ? 'true' : 'false'));
+  document.querySelectorAll('.tabs button').forEach((b) => {
+    b.setAttribute('aria-selected', b.dataset.mode === S.mode ? 'true' : 'false');
+  });
   const chips = $('#chips'),
     rb = $('#runbar');
   rb.hidden = !run;
@@ -131,7 +129,7 @@ function renderTop() {
 /* ---------- Aujourd'hui ---------- */
 const STANDALONE = window.matchMedia && matchMedia('(display-mode: standalone)').matches;
 function daysTo(d) {
-  return Math.round((new Date(d + 'T12:00:00') - new Date(today() + 'T12:00:00')) / 864e5);
+  return Math.round((new Date(`${d}T12:00:00`) - new Date(`${today()}T12:00:00`)) / 864e5);
 }
 function renderJour() {
   const td = today();
@@ -150,7 +148,7 @@ function renderJour() {
       j = daysTo(show);
     const [first, ...rest] = day.go;
     h += `<section class="card hero">
-      <div class="band"><span class="jj">${j === 0 ? 'Jour J' : 'J-' + j}</span><span class="jjl">${j === 0 ? "C'est ce soir.<br>Bonne représentation !" : `avant la représentation<br>${esc(fmtDate(show, { weekday: 'long', day: 'numeric', month: 'long' }))}`}</span></div>
+      <div class="band"><span class="jj">${j === 0 ? 'Jour J' : `J-${j}`}</span><span class="jjl">${j === 0 ? "C'est ce soir.<br>Bonne représentation !" : `avant la représentation<br>${esc(fmtDate(show, { weekday: 'long', day: 'numeric', month: 'long' }))}`}</span></div>
       <div class="body">
         <p class="kicker">${before ? 'Pour commencer' : esc(cap(fmtDate(td)))} · jour ${idx + 1} sur ${PLAN.length}</p>
         <h2>${esc(day.t)}</h2><p>${esc(day.x)}</p>
@@ -197,7 +195,7 @@ function renderJour() {
   h += '</div>';
   $('#script').innerHTML = h;
   const strip = $('#strip'),
-    now = strip && strip.querySelector('.now');
+    now = strip?.querySelector('.now');
   if (now) strip.scrollLeft = now.offsetLeft - strip.offsetLeft - strip.clientWidth / 2 + now.offsetWidth / 2;
 }
 
@@ -252,7 +250,7 @@ function renderRepeter() {
         ${miss || S.only ? `<button class="toggle" data-act="${S.only ? 'only-off' : 'only-on'}" aria-pressed="${S.only}"><span>Seulement mes ${plural(miss, 'réplique')} à revoir<br><span class="muted" style="font-weight:500">${S.only ? `Chacune avec la réplique de Frosine qui la précède.` : `Sinon, les ${nH} répliques du passage.`}</span></span><span class="sw"></span></button>` : ''}
       </section>`;
     }
-    el.innerHTML = h + '</div>';
+    el.innerHTML = `${h}</div>`;
     return;
   }
   const upto = state.phase === 'done' ? state.seq.length - 1 : state.pos;
@@ -268,7 +266,7 @@ function renderRepeter() {
     if (p > 0 && prev !== i - 1) h += `<div class="exit">…</div>`;
     if (S.order !== 'hasard' && (p === 0 || LINES[prev].b !== L.b)) h += blockHead(L.b, false);
     h += exitNote(L);
-    const cls = `ln ${L.w}${cur ? ' cur' + (fresh ? ' fresh' : '') : (cue ? ' cue' : ' past') + ' tap'}`;
+    const cls = `ln ${L.w}${cur ? ` cur${fresh ? ' fresh' : ''}` : `${cue ? ' cue' : ' past'} tap`}`;
     // Réplique déjà passée : la toucher reprend la répétition à cet endroit.
     const back = cur
       ? ''
@@ -279,13 +277,13 @@ function renderRepeter() {
     }
     const rm = state.runMarks[p];
     const mark = rm
-      ? `<span class="mark ${rm}">${rm === 'ok' ? IC.check + 'juste' : IC.cross + 'à revoir'}</span>`
+      ? `<span class="mark ${rm}">${rm === 'ok' ? `${IC.check}juste` : `${IC.cross}à revoir`}</span>`
       : '';
     let body;
     if (cur && state.phase === 'await') {
       body = masked(L.t, state.curMask);
       if (state.LISTENING || checkMode() === 'voix')
-        body += `<span class="heard">${state.HEARD ? "J'entends : « " + esc(state.HEARD) + ' »' : ''}</span>`;
+        body += `<span class="heard">${state.HEARD ? `J'entends : « ${esc(state.HEARD)} »` : ''}</span>`;
       if (S.hands && checkMode() !== 'voix') body += '<div class="timer"><i></i></div>';
     } else if (cur && state.phase === 'check' && state.RESULT) {
       body = resultHtml(state.RESULT);
@@ -298,7 +296,7 @@ function renderRepeter() {
   }
   if (state.phase === 'done') {
     const tot = state.runRes.ok + state.runRes.ko;
-    const ko = state.seq.filter((i, p) => state.runMarks[p] === 'ko');
+    const ko = state.seq.filter((_i, p) => state.runMarks[p] === 'ko');
     const start = (t) => {
       const w = t.split(/\s+/);
       return w.slice(0, 8).join(' ') + (w.length > 8 ? '…' : '');
@@ -309,7 +307,7 @@ function renderRepeter() {
       ${checkMode() === 'rec' || S.check === 'rec' ? '<p class="muted">Réécoute tes enregistrements dans Lire, avec « Ma voix ».</p>' : ''}</section>`;
   }
   el.innerHTML = h;
-  const key = state.pos + ':' + state.phase;
+  const key = `${state.pos}:${state.phase}`;
   if (key !== state.LASTSCROLL) {
     state.LASTSCROLL = key;
     const c = el.querySelector('.ln.cur') || el.lastElementChild;
@@ -401,13 +399,13 @@ export function renderDock() {
         ? `<span class="mark ok">${IC.check}Juste</span> ${pct} % des mots retrouvés`
         : `<span class="mark ko">${IC.cross}À revoir</span> ${pct} % des mots retrouvés`;
       b = S.hands
-        ? side('stop', IC.stop, 'Arrêter') + `<button class="btn main" data-act="skip">Suivant${IC.arrow}</button>`
+        ? `${side('stop', IC.stop, 'Arrêter')}<button class="btn main" data-act="skip">Suivant${IC.arrow}</button>`
         : side('retry', IC.replay, 'Réessayer') +
           side('flip', ok ? IC.cross : IC.check, ok ? 'Compter faux' : 'Compter juste') +
           `<button class="btn main" data-act="skip">Suivant${IC.arrow}</button>`;
     } else if (S.hands) {
       s = "Vérifie à l'oreille.";
-      b = side('stop', IC.stop, 'Arrêter') + `<button class="btn main" data-act="skip">Suivant${IC.arrow}</button>`;
+      b = `${side('stop', IC.stop, 'Arrêter')}<button class="btn main" data-act="skip">Suivant${IC.arrow}</button>`;
     } else {
       s = "Tu l'avais ?";
       b = `<button class="btn ko" data-act="ko">${IC.cross}À revoir</button><button class="btn ok" data-act="ok">${IC.check}Je l'avais</button>`;
@@ -419,7 +417,7 @@ export function renderDock() {
       (miss && !S.only ? side('only-start', IC.cross, 'Les ratées') : '') +
       `<button class="btn main" data-act="${S.only ? 'only-off-start' : 'start'}">${IC.replay}${S.only ? 'Tout le passage' : 'Recommencer'}</button>`;
   }
-  if (state.NOTICE) s = esc(state.NOTICE) + (s ? ' ' + s : '');
+  if (state.NOTICE) s = esc(state.NOTICE) + (s ? ` ${s}` : '');
   st.innerHTML = s;
   row.innerHTML = b;
 }

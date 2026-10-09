@@ -1,6 +1,6 @@
-import { S, save, idbPut, RECS, dropUrl } from './store.js';
-import { state } from './state.js';
 import { render, renderDock } from './render.js';
+import { state } from './state.js';
+import { dropUrl, idbPut, RECS, S, save } from './store.js';
 
 /* ---------- enregistrement de ma voix ---------- */
 let MIC = null,
@@ -9,7 +9,7 @@ export async function startRecorder(i, tok) {
   try {
     if (!MIC)
       MIC = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
-  } catch (e) {
+  } catch {
     state.NOTICE = "Micro refusé : l'enregistrement est désactivé.";
     S.check = 'manual';
     save();
@@ -33,7 +33,7 @@ export async function startRecorder(i, tok) {
     };
   });
   r.ondataavailable = (e) => {
-    if (e.data && e.data.size) chunks.push(e.data);
+    if (e.data?.size) chunks.push(e.data);
   };
   r.start();
   state.RECORDING = true;
@@ -49,7 +49,7 @@ export function stopRecorder(keep) {
 }
 export function releaseMic() {
   if (MIC) {
-    MIC.getTracks().forEach((t) => t.stop());
+    for (const t of MIC.getTracks()) t.stop();
     MIC = null;
   }
 }

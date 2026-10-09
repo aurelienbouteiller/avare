@@ -6,24 +6,24 @@ import '@fontsource/archivo/latin-600.css';
 import '@fontsource/archivo/latin-700.css';
 import './styles.css';
 import { registerSW } from 'virtual:pwa-register';
-import { S, save, clearStats, idbClear, idbKeys, RECS, URLS, dropUrl } from './store.js';
-import { state } from './state.js';
-import { BLOCKS, PLAN } from './data/scene.js';
 import {
-  TTS,
-  REC,
-  loadVoices,
-  hasVoices,
-  pickVoice,
-  sortedVoices,
   frosineTestClip,
+  hasVoices,
+  loadVoices,
+  pickVoice,
   playClip,
   playModelH,
+  REC,
   say,
+  sortedVoices,
+  TTS,
 } from './audio.js';
-import { engine, stop, stopSpeech, lockOff, playPassage, playLine, playMine } from './engine.js';
-import { $, esc, render } from './render.js';
+import { BLOCKS, PLAN } from './data/scene.js';
+import { engine, lockOff, playLine, playMine, playPassage, stop, stopSpeech } from './engine.js';
 import { IC } from './icons.js';
+import { $, esc, render } from './render.js';
+import { state } from './state.js';
+import { clearStats, dropUrl, idbClear, idbKeys, RECS, S, save, URLS } from './store.js';
 
 /* ---------- thème ---------- */
 function applyTheme() {
@@ -34,9 +34,9 @@ function applyTheme() {
   const dark = t === 'sombre' || (t === 'auto' && matchMedia('(prefers-color-scheme: dark)').matches);
   const meta = document.querySelector('meta[name=theme-color]');
   if (meta) meta.content = dark ? '#140B0F' : '#F7F1E6';
-  document
-    .querySelectorAll('#optTheme [data-val]')
-    .forEach((b) => b.setAttribute('aria-pressed', b.dataset.val === t ? 'true' : 'false'));
+  document.querySelectorAll('#optTheme [data-val]').forEach((b) => {
+    b.setAttribute('aria-pressed', b.dataset.val === t ? 'true' : 'false');
+  });
 }
 applyTheme();
 matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', applyTheme);
@@ -236,7 +236,7 @@ function fillVoices() {
 function syncDlg() {
   $('#optTts').checked = S.tts;
   $('#optRate').value = S.rate;
-  $('#rateVal').textContent = '×' + (+S.rate).toFixed(2);
+  $('#rateVal').textContent = `×${(+S.rate).toFixed(2)}`;
   $('#optWild').checked = S.wild;
   $('#optHands').checked = S.hands;
   $('#optTol').value = S.tol || 'normale';
@@ -265,7 +265,7 @@ $('#optTts').addEventListener('change', (e) => {
 });
 $('#optRate').addEventListener('input', (e) => {
   S.rate = +e.target.value;
-  $('#rateVal').textContent = '×' + S.rate.toFixed(2);
+  $('#rateVal').textContent = `×${S.rate.toFixed(2)}`;
   save();
 });
 $('#optWild').addEventListener('change', (e) => {
@@ -321,7 +321,7 @@ $('#btnResetRec').addEventListener('click', async () => {
   if (confirm('Effacer tous tes enregistrements ?')) {
     await idbClear();
     RECS.clear();
-    Object.keys(URLS).forEach((k) => dropUrl(k));
+    for (const k of Object.keys(URLS)) dropUrl(k);
     render();
   }
 });
@@ -332,14 +332,14 @@ if (TTS) {
   lv();
   try {
     speechSynthesis.addEventListener('voiceschanged', lv);
-  } catch (e) {
+  } catch {
     speechSynthesis.onvoiceschanged = lv;
   }
 }
 if (!BLOCKS.some((b) => b.n === S.block)) S.block = 1;
 if (!['jour', 'lire', 'repeter'].includes(S.mode)) S.mode = 'jour';
 idbKeys().then((ks) => {
-  ks.forEach((k) => RECS.add(+k));
+  for (const k of ks) RECS.add(+k);
   render();
 });
 registerSW({
@@ -348,11 +348,13 @@ registerSW({
     state.OFFLINE_READY = true;
   },
 });
-if (navigator.serviceWorker && navigator.serviceWorker.controller) state.OFFLINE_READY = true;
+if (navigator.serviceWorker?.controller) state.OFFLINE_READY = true;
 // Caches de l'ancien service worker manuel (souffleur-v3 : ~8 Mo d'audio en base64, polices Google).
 if ('caches' in window)
   caches
     .keys()
-    .then((ks) => ks.filter((k) => k.startsWith('souffleur-')).forEach((k) => caches.delete(k)))
+    .then((ks) => {
+      for (const k of ks) if (k.startsWith('souffleur-')) caches.delete(k);
+    })
     .catch(() => {});
 render();
