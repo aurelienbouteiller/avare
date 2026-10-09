@@ -14,9 +14,10 @@
     "lint": "biome check",
     "format": "biome check --write",
     "test": "vitest run",
-    "check": "biome ci && npm run typecheck && vitest run",
+    "check": "biome ci && npm run typecheck && knip && vitest run",
     "prepare": "simple-git-hooks",
-    "e2e": "playwright test"
+    "e2e": "playwright test",
+    "knip": "knip"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
@@ -25,6 +26,7 @@
     "@playwright/test": "1.64.0",
     "@types/dom-speech-recognition": "0.0.12",
     "@types/node": "24.19.1",
+    "knip": "6.41.0",
     "simple-git-hooks": "2.14.0",
     "typescript": "7.0.2",
     "vite": "^8.3.4",

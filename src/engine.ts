@@ -17,7 +17,7 @@ function markSeg(k: number) {
 
 /* ---------- écran allumé ---------- */
 let WL: WakeLockSentinel | null = null;
-export async function lockOn() {
+async function lockOn() {
   try {
     if ('wakeLock' in navigator && !WL) {
       WL = await navigator.wakeLock.request('screen');
@@ -81,7 +81,7 @@ export function stopSpeech() {
   state.LISTENING = false;
   if (state.RECORDING) stopRecorder(false);
 }
-export function start() {
+function start() {
   stopSpeech();
   state.VOICE_OFF = false;
   state.NOTICE = '';
@@ -97,7 +97,7 @@ export function start() {
   lockOn();
   next();
 }
-export function next() {
+function next() {
   stopSpeech();
   state.pos++;
   state.RESULT = null;

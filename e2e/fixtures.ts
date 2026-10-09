@@ -1,7 +1,8 @@
 import { test as base, expect, type Page } from '@playwright/test';
 
 export { expect };
-export const KEY = 'souffleur-harpagon-v1';
+
+const KEY = 'souffleur-harpagon-v1';
 /** Jour fixe des tests : J-7, séance « Bloc 6 et enchaînement » du plan. */
 export const TODAY = '2026-10-09';
 

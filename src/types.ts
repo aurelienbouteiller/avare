@@ -1,7 +1,7 @@
 /* ---------- types partagés ---------- */
 
 /* scène */
-export type Speaker = 'H' | 'F';
+type Speaker = 'H' | 'F';
 /** Un numéro de bloc, ou une réplique : [qui, texte, 'fin' pour la dernière]. */
 export type RawEntry = number | readonly [Speaker, string] | readonly [Speaker, string, 'fin'];
 /** Segment d'une réplique de Frosine : texte dit, ou didascalie entre accolades. */
@@ -39,15 +39,15 @@ export const TOLS = ['stricte', 'normale', 'souple'] as const;
 export const SRCS = ['rec', 'tts'] as const;
 export const BANKS = ['F0', 'F1', 'F2', 'F3'] as const;
 export const THEMES = ['sombre', 'clair', 'auto'] as const;
-export type Mode = (typeof MODES)[number];
+type Mode = (typeof MODES)[number];
 export type Mask = (typeof MASK_IDS)[number];
-export type Order = (typeof ORDERS)[number];
+type Order = (typeof ORDERS)[number];
 export type Check = (typeof CHECKS)[number];
 export type Tol = (typeof TOLS)[number];
-export type Src = (typeof SRCS)[number];
+type Src = (typeof SRCS)[number];
 /** Voix enregistrée de Frosine (F*) ou modèle d'Harpagon (H0). */
-export type Bank = (typeof BANKS)[number];
-export type Theme = (typeof THEMES)[number];
+type Bank = (typeof BANKS)[number];
+type Theme = (typeof THEMES)[number];
 
 export interface Settings {
   mode: Mode;
@@ -70,7 +70,7 @@ export interface Settings {
   /** Nombre de répliques travaillées, par date AAAA-MM-JJ. */
   daily: Record<string, number>;
 }
-export type Mark = 'ok' | 'ko';
+type Mark = 'ok' | 'ko';
 export interface Stat {
   ok: number;
   ko: number;

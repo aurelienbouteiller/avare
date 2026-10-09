@@ -1,7 +1,7 @@
 /* ---------- texte de la scène, blocs, notes de jeu et plan de répétition ---------- */
 import type { Block, Line, Mask, Note, PlanDay, RawEntry, Seg, Tol } from '../types';
 
-export const RAW: readonly RawEntry[] = [
+const RAW: readonly RawEntry[] = [
   1,
   ['H', "Tout va comme il faut. Hé bien, qu'est-ce, Frosine ?"],
   ['F', 'Ah, mon Dieu ! Que vous vous portez bien ! Et que vous avez là un vrai visage de santé !'],
