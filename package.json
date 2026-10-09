@@ -4,12 +4,18 @@
   "version": "4.0.0",
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=22.12"
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "build": "npm run typecheck && vitest run && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
+    "lint": "biome check",
+    "format": "biome check --write",
+    "test": "vitest run",
+    "check": "biome ci && npm run typecheck && vitest run",
+    "prepare": "simple-git-hooks"
   },
   "devDependencies": {
     "@biomejs/biome": "2.5.15",
@@ -17,9 +23,13 @@
     "@fontsource/spectral": "^5.3.0",
     "@types/dom-speech-recognition": "0.0.12",
     "@types/node": "22.20.5",
+    "simple-git-hooks": "2.14.0",
     "typescript": "7.0.2",
     "vite": "^8.3.4",
     "vite-plugin-pwa": "^2.0.0",
     "vitest": "5.0.3"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "npx biome check --staged --no-errors-on-unmatched && npm run typecheck"
   }
 }

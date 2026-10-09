@@ -12,32 +12,40 @@ Tout est stocké sur l'appareil (`localStorage` pour les résultats, IndexedDB p
 
 ## Développement
 
-Node 20 ou plus récent.
+Node 22.12 ou plus récent (voir `.nvmrc`). Le code est en TypeScript strict (TypeScript 7), lint et formatage par [Biome](https://biomejs.dev), tests avec Vitest.
 
 ```sh
-npm install
+npm install        # installe aussi le hook pre-commit (Biome sur les fichiers indexés, puis typecheck)
 npm run dev        # serveur de dev sur http://localhost:5173
-npm run build      # build de production dans dist/
+npm run check      # Biome, typecheck et tests : ce que doit passer tout commit
+npm run format     # formate et applique les correctifs sûrs de Biome
+npm test           # tests Vitest
+npm run build      # typecheck, tests, puis build de production dans dist/
 npm run preview    # sert dist/ sur http://localhost:4173 (service worker actif)
 ```
+
+Un échec de typecheck ou de test fait échouer `npm run build`, donc le déploiement. Le commit de formatage initial est listé dans `.git-blame-ignore-revs` (`git config blame.ignoreRevsFile .git-blame-ignore-revs`).
 
 ## Organisation
 
 | Chemin | Rôle |
 | --- | --- |
 | `index.html` | Coquille HTML (en-tête, barre de répétition, zone de texte, dock d'actions, navigation du bas, réglages) |
-| `src/main.js` | Démarrage, interactions, réglages, enregistrement du service worker |
-| `src/data/scene.js` | Texte de la scène, blocs, notes de jeu, plan de répétition |
-| `src/engine.js` | Moteur de répétition et lecture des passages |
-| `src/audio.js` | Voix enregistrées (chargement, préchargement) et voix du téléphone |
-| `src/compare.js` | Comparaison de la réplique dite avec le texte |
-| `src/listen.js`, `src/recorder.js` | Reconnaissance vocale, enregistrement de ta voix |
-| `src/render.js` | Rendu des écrans |
-| `src/icons.js` | Icônes SVG intégrées (fonctionnent hors ligne) |
-| `src/store.js`, `src/state.js` | Données sauvegardées, état d'exécution partagé |
+| `src/main.ts` | Démarrage, interactions, réglages, enregistrement du service worker |
+| `src/data/scene.ts` | Texte de la scène, blocs, notes de jeu, plan de répétition |
+| `src/engine.ts` | Moteur de répétition et lecture des passages |
+| `src/audio.ts` | Voix enregistrées (chargement, préchargement) et voix du téléphone |
+| `src/compare.ts` | Comparaison de la réplique dite avec le texte |
+| `src/listen.ts`, `src/recorder.ts` | Reconnaissance vocale, enregistrement de ta voix |
+| `src/render.ts` | Rendu des écrans |
+| `src/icons.ts` | Icônes SVG intégrées (fonctionnent hors ligne) |
+| `src/store.ts`, `src/state.ts` | Données sauvegardées (validées au chargement), état d'exécution partagé |
+| `src/types.ts` | Types partagés et listes de valeurs autorisées |
+| `plugins/clips.ts` | Plugin Vite : module `virtual:clips`, liste des MP3 présents dans `public/audio/` |
+| `*.test.ts` | Tests Vitest |
 | `public/audio/<voix>/L<réplique>_S<segment>.mp3` | Voix enregistrées : `F0` Denise, `F1` Vivienne, `F2` Charline, `F3` Ariane, `H0` Harpagon modèle |
 
-Pour ajouter ou remplacer un clip, dépose le MP3 dans `public/audio/<voix>/` et ajoute son identifiant dans `src/data/clips.json`. Le service worker est régénéré à chaque build, et seuls les fichiers modifiés sont re-téléchargés par les utilisateurs.
+Pour ajouter ou remplacer un clip, dépose simplement le MP3 dans `public/audio/<voix>/` : la liste des clips est relue à chaque build (et à chaud en dev). Le service worker est régénéré à chaque build, et seuls les fichiers modifiés sont re-téléchargés par les utilisateurs.
 
 ## Déploiement
 
@@ -45,6 +53,6 @@ Le site est entièrement statique. HTTPS est obligatoire (micro, service worker)
 
 **Netlify** : importer le dépôt GitHub. `netlify.toml` fixe déjà la commande (`npm run build`), le dossier publié (`dist`) et la version de Node.
 
-**Cloudflare Pages** : Workers & Pages → Create → Pages → connecter le dépôt, préréglage *Vite* (ou commande `npm run build`, dossier de sortie `dist`), variable d'environnement `NODE_VERSION=20`.
+**Cloudflare Pages** : Workers & Pages → Create → Pages → connecter le dépôt, préréglage *Vite* (ou commande `npm run build`, dossier de sortie `dist`), variables d'environnement `NODE_VERSION=22` et `SKIP_INSTALL_SIMPLE_GIT_HOOKS=1`.
 
 Dans les deux cas, `public/_headers` règle le cache : fichiers hashés de `assets/` en cache permanent, `index.html` et `sw.js` toujours revalidés pour que les mises à jour arrivent tout de suite.
