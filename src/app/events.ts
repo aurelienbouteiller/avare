@@ -1,10 +1,9 @@
 /* ---------- interactions de l'écran principal (évènements délégués) ---------- */
 import { stop } from '../engine/rehearsal';
 import { state } from '../state';
-import { save, settings } from '../storage/settings';
+import { settings } from '../storage/settings';
 import { type BeforeInstallPromptEvent, isOneOf, MODES } from '../types';
 import { $, closest } from '../ui/dom';
-import { render } from '../ui/render';
 import { applyPlanPreset, runAction, setSessionOption, showScreen, tapLine } from './actions';
 
 function onTabClick(e: Event) {
@@ -18,8 +17,6 @@ function onChipClick(e: Event) {
   stop();
   settings.block = Number(chip.dataset.block);
   settings.only = false;
-  save();
-  render();
   chip.scrollIntoView({ inline: 'nearest', block: 'nearest' });
 }
 
@@ -29,10 +26,8 @@ function onActionClick(e: Event) {
 }
 
 function toggleDayDone(d: string) {
-  if (settings.done[d]) delete settings.done[d];
-  else settings.done[d] = true;
-  save();
-  render();
+  const { [d]: wasDone, ...others } = settings.done;
+  settings.done = wasDone ? others : { ...others, [d]: true };
 }
 
 // Zone de texte : boutons d'action, séances du plan, séance faite, options de séance, ou une réplique.
@@ -71,12 +66,15 @@ export function bindEvents() {
   $('#script').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') tapLine(e);
   });
-  // L'aide de la vérification à la voix dépend du réseau.
-  window.addEventListener('online', () => render());
-  window.addEventListener('offline', () => render());
+  // La vérification à la voix dépend du réseau.
+  window.addEventListener('online', () => {
+    state.online = true;
+  });
+  window.addEventListener('offline', () => {
+    state.online = false;
+  });
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     state.installPrompt = e as BeforeInstallPromptEvent;
-    if (settings.mode === 'jour') render();
   });
 }

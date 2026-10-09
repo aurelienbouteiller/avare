@@ -1,10 +1,11 @@
 /* ---------- enregistrements de ma voix (IndexedDB, une prise par réplique) ---------- */
+import { signal } from '@preact/signals-core';
 
 const DB_NAME = 'souffleur';
 const STORE = 'rec';
 
-/** Répliques qui ont un enregistrement. */
-export const recorded = new Set<number>();
+/** Répliques qui ont un enregistrement (observé : remplacé à chaque changement). */
+export const recorded = signal<ReadonlySet<number>>(new Set());
 // Adresses blob: déjà créées, révoquées quand la prise change ou est effacée.
 const urls = new Map<number, string>();
 
@@ -43,13 +44,13 @@ function forgetUrl(i: number) {
 /** Charge la liste des répliques enregistrées. */
 export async function loadRecorded() {
   const keys = await request<IDBValidKey[]>('readonly', (s) => s.getAllKeys(), []);
-  for (const k of keys) recorded.add(Number(k));
+  recorded.value = new Set([...recorded.value, ...keys.map(Number)]);
 }
 
 /** Enregistre (ou remplace) la prise de la réplique i. */
 export async function saveRecording(i: number, blob: Blob) {
   await request('readwrite', (s) => s.put(blob, i), undefined);
-  recorded.add(i);
+  recorded.value = new Set(recorded.value).add(i);
   forgetUrl(i);
 }
 
@@ -66,6 +67,6 @@ export async function recordingUrl(i: number) {
 
 export async function clearRecordings() {
   await request('readwrite', (s) => s.clear(), undefined);
-  recorded.clear();
+  recorded.value = new Set();
   for (const i of [...urls.keys()]) forgetUrl(i);
 }

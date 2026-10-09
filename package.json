@@ -37,6 +37,7 @@
     "pre-commit": "npx biome check --staged --no-errors-on-unmatched && npm run typecheck"
   },
   "dependencies": {
+    "@preact/signals-core": "1.14.4",
     "lit-html": "3.3.3"
   }
 }

@@ -90,31 +90,38 @@ export interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
+/** État affiché : chaque champ est observé, le modifier redessine ce qui en dépend. */
 export interface RuntimeState {
-  /** Jeton de séquence : toute lecture en cours s'arrête quand il change. */
-  token: number;
   seq: number[];
   pos: number;
   phase: Phase;
   curMask: Mask;
   tally: { ok: number; ko: number };
   marks: Record<number, Mark>;
-  timerId: ReturnType<typeof setTimeout> | undefined;
   playingIdx: number;
   /** Segment de la réplique de Frosine en cours de lecture (-1 : aucun). */
   seg: number;
   result: CompareResult | null;
   notice: string;
   passage: boolean;
-  lastScroll: string;
-  listener: { abort(): void } | null;
   listening: boolean;
   heard: string;
   voiceOff: boolean;
   recording: boolean;
-  recSaved: Promise<void>;
+  /** Début du minuteur des mains libres (0 : aucun) et sa durée. */
+  timerAt: number;
+  timerMs: number;
+  online: boolean;
   installPrompt: BeforeInstallPromptEvent | null;
   offlineReady: boolean;
+}
+/** Mécanique de l'exécution, jamais affichée. */
+export interface Control {
+  /** Jeton de séquence : toute lecture en cours s'arrête quand il change. */
+  token: number;
+  timerId: ReturnType<typeof setTimeout> | undefined;
+  listener: { abort(): void } | null;
+  recSaved: Promise<void>;
 }
 
 /** Vrai si `v` fait partie de la liste de valeurs autorisées. */

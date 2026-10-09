@@ -1,4 +1,6 @@
 /* ---------- réglages et résultats sauvegardés (localStorage) ---------- */
+import { signal } from '@preact/signals-core';
+import { reactive, watch } from '../reactive';
 import {
   BANKS,
   CHECKS,
@@ -100,21 +102,25 @@ function load() {
 }
 
 const saved = load();
-export const settings: Settings = saved.s;
-/** Résultats par réplique. */
-export const stats: Record<number, Stat> = saved.st;
+/** Réglages : observés, comme l'état d'exécution. `done` et `daily` se remplacent, ils ne se modifient pas. */
+export const settings: Settings = reactive(saved.s);
+/** Résultats par réplique : remplacer l'objet pour signaler un changement. */
+export const stats = signal<Record<number, Stat>>(saved.st);
 
-export function save() {
+function save() {
   try {
-    localStorage.setItem(KEY, JSON.stringify({ v: VERSION, s: settings, st: stats }));
+    localStorage.setItem(KEY, JSON.stringify({ v: VERSION, s: settings, st: stats.value }));
   } catch {}
 }
 
+/** Sauvegarde réglages et résultats à chaque changement. */
+export const autoSave = () => watch(save);
+
 export function clearStats() {
-  for (const k of Object.keys(stats)) delete stats[Number(k)];
+  stats.value = {};
 }
 
-export const isMissed = (i: number) => stats[i]?.last === 'ko';
+export const isMissed = (i: number) => stats.value[i]?.last === 'ko';
 
 /** Voix enregistrée choisie pour Frosine. */
 export const frosineBank = () => settings.fv || 'F0';

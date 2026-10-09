@@ -1,5 +1,6 @@
 /* ---------- écran Répéter : préparation de la séance, puis répliques au fil de la répétition ---------- */
 import { html, render as litRender, nothing } from 'lit-html';
+import { keyed } from 'lit-html/directives/keyed.js';
 import { BLOCKS, blockLines, LINES, MASKS, NOTES } from '../data/scene';
 import { canRecord, checkMode, SR } from '../device/platform';
 import { excerpt, isHarpagon } from '../domain/lines';
@@ -38,10 +39,9 @@ const segButton = (k: SessionOption, v: string, label: string, disabled = false)
 function checkHelp() {
   const noSr = SR ? '' : " La reconnaissance vocale n'est pas disponible sur ce navigateur.";
   if (settings.check === 'voix') {
-    const help =
-      navigator.onLine === false
-        ? 'Hors ligne : la vérification à la voix a besoin du réseau, elle sera manuelle.'
-        : 'Le téléphone écoute ta réplique et la compare au texte.';
+    const help = !state.online
+      ? 'Hors ligne : la vérification à la voix a besoin du réseau, elle sera manuelle.'
+      : 'Le téléphone écoute ta réplique et la compare au texte.';
     return help + noSr;
   }
   if (settings.check === 'rec')
@@ -70,7 +70,7 @@ function onlyMissedToggle() {
 function blockCard() {
   const b = settings.block,
     note = NOTES[b],
-    m = mastery(b, stats);
+    m = mastery(b, stats.value);
   return html`<section class="card"><p class="kicker">${b ? `Bloc ${b} sur 6` : 'Toute la scène'}</p><h2>${BLOCKS[b].short}</h2>
         <p class="obj">Objectif : ${note.obj}</p><p class="muted">${note.jeu}</p>
         <div class="meter">${masteryBar(m)}<b>${percent(m.ok, m.n)} %</b></div>
@@ -96,13 +96,17 @@ function awaitingBody(line: Line) {
     state.listening || voice
       ? html`<span class="heard">${state.heard ? `J'entends : « ${state.heard} »` : ''}</span>`
       : nothing;
-  const timer = settings.hands && !voice ? html`<div class="timer"><i></i></div>` : nothing;
+  // Un nœud neuf à chaque départ du minuteur, pour que l'animation reparte de zéro (Réessayer).
+  const bar = state.timerAt
+    ? keyed(state.timerAt, html`<i style="animation-duration:${state.timerMs}ms"></i>`)
+    : nothing;
+  const timer = settings.hands && !voice ? html`<div class="timer">${bar}</div>` : nothing;
   return html`${masked(line.t, state.curMask)}${heard}${timer}`;
 }
 
 // Après « Révéler » avec enregistrement : réécouter ma prise ou le modèle.
 const listenBack = (i: number) =>
-  html`<div class="mini">${recorded.has(i) ? html`<button data-act="myrec" data-i=${i}>${IC.play}Ma version</button>` : nothing}<button data-act="model" data-i=${i}>${IC.play}Le modèle</button></div>`;
+  html`<div class="mini">${recorded.value.has(i) ? html`<button data-act="myrec" data-i=${i}>${IC.play}Ma version</button>` : nothing}<button data-act="model" data-i=${i}>${IC.play}Le modèle</button></div>`;
 
 // Texte de la réplique d'Harpagon selon la phase : masqué, comparé à ce qui a été dit, ou en clair.
 function harpagonBody(i: number, cur: boolean) {
@@ -171,10 +175,11 @@ function doneCard() {
 }
 
 // Centre la réplique courante (ou la fin) une fois par réplique et par phase.
+let lastScroll = '';
 function scrollToCurrent(el: HTMLElement) {
   const key = `${state.pos}:${state.phase}`;
-  if (key === state.lastScroll) return;
-  state.lastScroll = key;
+  if (key === lastScroll) return;
+  lastScroll = key;
   const target = el.querySelector('.ln.cur') || el.lastElementChild;
   target?.scrollIntoView({ block: 'center', behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
 }

@@ -5,21 +5,21 @@ import { stopRecorder } from '../device/recorder';
 import type { FrosineVoice } from '../device/speak';
 import { stopTts } from '../device/tts';
 import { keepScreenOn } from '../device/wake-lock';
-import { state } from '../state';
+import { control, state } from '../state';
 import { frosineBank, settings } from '../storage/settings';
-import { renderScript } from '../ui/render';
 
 /** Arrête tout ce qui parle, écoute ou enregistre, et invalide les enchaînements en attente (nouveau jeton). */
 export function interrupt() {
-  state.token++;
-  clearTimeout(state.timerId);
+  control.token++;
+  clearTimeout(control.timerId);
+  state.timerAt = 0;
   state.playingIdx = -1;
   state.seg = -1;
   state.passage = false;
   stopClip();
   stopTts();
-  state.listener?.abort();
-  state.listener = null;
+  control.listener?.abort();
+  control.listener = null;
   state.listening = false;
   if (state.recording) stopRecorder(false);
 }
@@ -27,7 +27,6 @@ export function interrupt() {
 /** Segment de la réplique de Frosine en cours de lecture, surligné à l'écran (-1 : aucun). */
 export function markSegment(k: number) {
   state.seg = k;
-  renderScript();
 }
 
 /** Voix de Frosine des réglages, sans variation. */

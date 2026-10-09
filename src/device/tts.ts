@@ -1,5 +1,5 @@
 /* ---------- voix du téléphone (synthèse vocale) ---------- */
-import { state } from '../state';
+import { control } from '../state';
 import { settings } from '../storage/settings';
 import { TTS } from './platform';
 import { settleOnce, wait } from './timing';
@@ -70,11 +70,11 @@ function sayOne(text: string, rate: number, pitch: number) {
 export async function say(text: string, rate: number, pitch: number, token: number) {
   const parts = sentences(text);
   for (const [k, p] of parts.entries()) {
-    if (token !== state.token) return false;
+    if (token !== control.token) return false;
     await sayOne(p, rate, pitch);
     if (k < parts.length - 1) await wait(pauseAfter(p) / Math.max(rate, 0.6));
   }
-  return token === state.token;
+  return token === control.token;
 }
 
 export function stopTts() {

@@ -6,13 +6,11 @@ import { playClip } from '../device/player';
 import { hasVoices, loadVoices, pickVoice, say, sortedVoices } from '../device/tts';
 import { stop } from '../engine/rehearsal';
 import { interrupt } from '../engine/sound';
-import { state } from '../state';
+import { control, state } from '../state';
 import { clearRecordings } from '../storage/recordings';
-import { clearStats, frosineBank, save, settings } from '../storage/settings';
+import { clearStats, frosineBank, settings } from '../storage/settings';
 import { BANKS, isOneOf, SRCS, THEMES, TOLS } from '../types';
 import { $, closest } from '../ui/dom';
-import { render } from '../ui/render';
-import { applyTheme } from './theme';
 
 const TEST_LINE = 'Ah, mon Dieu ! Que vous vous portez bien ! Et que vous avez là un vrai visage de santé !';
 const input = (id: string) => $<HTMLInputElement>(id);
@@ -77,27 +75,24 @@ function syncDialog() {
   $('#offlineInfo').textContent = state.offlineReady
     ? 'Disponible hors ligne : tout fonctionne sans réseau, sauf la vérification à la voix.'
     : 'Préparation du mode hors ligne au premier chargement.';
-  applyTheme();
 }
 
 /* ---------- liaisons champ → réglage, sauvegardé à chaque changement ---------- */
 function bindCheckbox(id: string, apply: (checked: boolean) => void) {
   input(id).addEventListener('change', (e) => {
     apply((e.target as HTMLInputElement).checked);
-    save();
   });
 }
 
 function bindSelect(id: string, apply: (value: string) => void) {
   select(id).addEventListener('change', (e) => {
     apply((e.target as HTMLSelectElement).value);
-    save();
   });
 }
 
 async function testVoice() {
   interrupt();
-  const token = state.token;
+  const token = control.token;
   const clip = await frosineClip(frosineBank(), 1, 0);
   if (clip) playClip(clip, settings.rate, token);
   else if (TTS) say(TEST_LINE, settings.rate, 1, token);
@@ -108,14 +103,12 @@ function resetStats() {
   clearStats();
   settings.only = false;
   settings.daily = {};
-  save();
   stop();
 }
 
 async function resetRecordings() {
   if (!confirm('Effacer tous tes enregistrements ?')) return;
   await clearRecordings();
-  render();
 }
 
 export function initSettingsDialog() {
@@ -125,7 +118,6 @@ export function initSettingsDialog() {
     dialog.showModal();
   });
   $('#btnClose').addEventListener('click', () => dialog.close());
-  dialog.addEventListener('close', () => render());
 
   bindCheckbox('#optTts', (v) => {
     settings.tts = v;
@@ -139,7 +131,6 @@ export function initSettingsDialog() {
   input('#optRate').addEventListener('input', (e) => {
     settings.rate = Number((e.target as HTMLInputElement).value);
     showRate();
-    save();
   });
   bindSelect('#optTol', (v) => {
     if (isOneOf(TOLS, v)) settings.tol = v;
@@ -158,8 +149,6 @@ export function initSettingsDialog() {
     const t = closest(e, '[data-val]');
     if (!t || !isOneOf(THEMES, t.dataset.val)) return;
     settings.theme = t.dataset.val;
-    save();
-    applyTheme();
   });
   $('#btnTest').addEventListener('click', testVoice);
   $('#btnReset').addEventListener('click', resetStats);

@@ -7,10 +7,9 @@ import { playFrosineLine, playHarpagonModel } from '../device/speak';
 import { wait } from '../device/timing';
 import { keepScreenOn, releaseScreen } from '../device/wake-lock';
 import { isHarpagon } from '../domain/lines';
-import { state } from '../state';
+import { control, state } from '../state';
 import { recordingUrl } from '../storage/recordings';
 import { frosineBank, settings } from '../storage/settings';
-import { render, renderScript } from '../ui/render';
 import { interrupt, markSegment, steadyVoice } from './sound';
 
 const BETWEEN_LINES_MS = 300;
@@ -30,24 +29,21 @@ export async function playPassage(mine: boolean, from?: number) {
   interrupt();
   state.passage = true;
   withMyVoice = mine;
-  const token = state.token;
+  const token = control.token;
   keepScreenOn();
-  render();
   const ids = blockLines(settings.block);
   for (let k = from === undefined ? 0 : Math.max(0, ids.indexOf(from)); k < ids.length; k++) {
-    if (token !== state.token) return;
+    if (token !== control.token) return;
     state.playingIdx = ids[k];
-    renderScript(true);
     prefetch(ids.slice(k + 1, k + 3), frosineBank());
     await playLineOnce(ids[k], token, mine);
-    if (token !== state.token) return;
+    if (token !== control.token) return;
     await wait(BETWEEN_LINES_MS);
   }
-  if (token !== state.token) return;
+  if (token !== control.token) return;
   state.passage = false;
   state.playingIdx = -1;
   releaseScreen();
-  render();
 }
 
 /** Touche sur une réplique : pendant un passage, il reprend là ; sinon la réplique est dite (ou arrêtée). */
@@ -58,17 +54,12 @@ export async function playLine(i: number) {
   }
   const wasPlaying = state.playingIdx === i;
   interrupt();
-  if (wasPlaying) {
-    render();
-    return;
-  }
+  if (wasPlaying) return;
   state.playingIdx = i;
-  render();
-  const token = state.token;
+  const token = control.token;
   await playLineOnce(i, token, false);
-  if (token !== state.token) return;
+  if (token !== control.token) return;
   state.playingIdx = -1;
-  render();
 }
 
 /** Ma prise de la réplique i. */
@@ -77,23 +68,20 @@ export async function playMyTake(i: number) {
   const url = await recordingUrl(i);
   if (!url) return;
   state.playingIdx = i;
-  renderScript();
-  const token = state.token;
+  const token = control.token;
   await playClip(url, 1, token);
-  if (token !== state.token) return;
+  if (token !== control.token) return;
   state.playingIdx = -1;
-  renderScript();
 }
 
 /** Arrête la lecture du passage. */
 export function stopPassage() {
   interrupt();
   releaseScreen();
-  render();
 }
 
 /** Le modèle dit la réplique i d'Harpagon. */
 export function playModel(i: number) {
   interrupt();
-  playHarpagonModel(i, state.token);
+  playHarpagonModel(i, control.token);
 }

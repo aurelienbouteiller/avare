@@ -3,10 +3,9 @@ import { PLAN } from '../data/scene';
 import { playLine, playModel, playMyTake, playPassage, stopPassage } from '../engine/passage';
 import { engine, stop } from '../engine/rehearsal';
 import { state } from '../state';
-import { save, settings } from '../storage/settings';
+import { settings } from '../storage/settings';
 import { CHECKS, isOneOf, MASK_IDS, type Mode, ORDERS, type Preset } from '../types';
 import { closest } from '../ui/dom';
-import { render } from '../ui/render';
 
 /** Change d'écran (et de bloc) en arrêtant ce qui est en cours. */
 export function showScreen(mode: Mode, block?: number) {
@@ -16,8 +15,6 @@ export function showScreen(mode: Mode, block?: number) {
     settings.block = block;
     settings.only = false;
   }
-  save();
-  render();
   window.scrollTo(0, 0);
 }
 
@@ -38,8 +35,6 @@ function applyPreset(p: Preset) {
     settings.wild = !!p.wild;
     if (p.check) settings.check = p.check;
   }
-  save();
-  render();
   window.scrollTo(0, 0);
 }
 
@@ -48,18 +43,14 @@ export function setSessionOption(k?: string, v?: string) {
   if (k === 'mask' && isOneOf(MASK_IDS, v)) settings.mask = v;
   else if (k === 'order' && isOneOf(ORDERS, v)) settings.order = v;
   else if (k === 'check' && isOneOf(CHECKS, v)) settings.check = v;
-  save();
-  render();
 }
 
 // « Seulement mes répliques à revoir » ; puis l'écran de préparation, ou directement la répétition.
 function setOnlyMissed(only: boolean, thenStart: boolean) {
   settings.only = only;
-  save();
   if (thenStart) engine.start();
   else {
     state.phase = 'idle';
-    render();
   }
 }
 
@@ -69,7 +60,6 @@ function install() {
   prompt.prompt();
   prompt.userChoice.finally(() => {
     state.installPrompt = null;
-    render();
   });
 }
 

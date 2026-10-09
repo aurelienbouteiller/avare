@@ -42,7 +42,7 @@ function runbar() {
 
 function chips() {
   return BLOCKS.map((b) => {
-    const m = mastery(b.n, stats);
+    const m = mastery(b.n, stats.value);
     const badge = m.ko ? html`<span class="badge" aria-label="${m.ko} à revoir">${m.ko}</span>` : nothing;
     return html`<button class="chip" data-block=${b.n} aria-pressed=${settings.block === b.n}><span class="cl">${b.label}${badge}</span>${masteryBar(m)}</button>`;
   });

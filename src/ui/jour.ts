@@ -58,7 +58,7 @@ function lateCard(td: string) {
 
 /* ---------- maîtrise par bloc ---------- */
 function masteryTile(b: number) {
-  const m = mastery(b, stats),
+  const m = mastery(b, stats.value),
     label = BLOCKS[b].label;
   const ok = percent(m.ok, m.n);
   return html`<button class="tile" data-act="go-block" data-b=${b} aria-label="${label} : ${m.ok} justes, ${m.ko} à revoir sur ${m.n}. Répéter ce bloc."><span class="ring" style="--p:${ok};--k:${percent(m.ko, m.n)}"><b>${ok}%</b></span>${label}</button>`;
@@ -66,7 +66,7 @@ function masteryTile(b: number) {
 
 function masteryCard() {
   const tiles = [1, 2, 3, 4, 5, 6].map(masteryTile);
-  return html`<section class="card"><h3>Maîtrise par bloc</h3><div class="tiles">${tiles}</div><p class="muted total">Toute la scène : ${masterySummary(mastery(0, stats))}. Touche un bloc pour le répéter.</p></section>`;
+  return html`<section class="card"><h3>Maîtrise par bloc</h3><div class="tiles">${tiles}</div><p class="muted total">Toute la scène : ${masterySummary(mastery(0, stats.value))}. Touche un bloc pour le répéter.</p></section>`;
 }
 
 /* ---------- programme ---------- */

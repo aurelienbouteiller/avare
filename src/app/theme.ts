@@ -1,11 +1,12 @@
 /* ---------- thème : sombre, clair ou celui du système ---------- */
+import { watch } from '../reactive';
 import { settings } from '../storage/settings';
 
 const DARK_BG = '#140B0F';
 const LIGHT_BG = '#F7F1E6';
 const systemDark = matchMedia('(prefers-color-scheme: dark)');
 
-export function applyTheme() {
+function applyTheme() {
   const t = settings.theme || 'sombre',
     root = document.documentElement;
   if (t === 'auto') delete root.dataset.theme;
@@ -17,8 +18,8 @@ export function applyTheme() {
     b.setAttribute('aria-pressed', b.dataset.val === t ? 'true' : 'false');
 }
 
-/** Applique le thème et le suit quand le système change de mode. */
+/** Applique le thème à chaque changement de réglage, et le suit quand le système change de mode. */
 export function initTheme() {
-  applyTheme();
+  watch(applyTheme);
   systemDark.addEventListener?.('change', applyTheme);
 }

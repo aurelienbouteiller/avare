@@ -1,7 +1,7 @@
 /* ---------- reconnaissance vocale ---------- */
 import { compare } from '../domain/compare';
 import { fixNames } from '../domain/names';
-import { state } from '../state';
+import { control, state } from '../state';
 import { SR } from './platform';
 
 // Chrome Android renvoie en mode continu des résultats cumulatifs : chacun reprend toute la phrase depuis le début.
@@ -18,8 +18,6 @@ const GIVE_UP_SILENCE_MS = 4000;
 const maxListenMs = (expected: string) => 7000 + expected.split(/\s+/).length * 800;
 
 export interface ListenHandlers {
-  /** Le micro écoute. */
-  onStart(): void;
   /** Transcription partielle, à afficher pendant que l'utilisateur parle. */
   onHeard(text: string): void;
   /** Fin de l'écoute (silence, temps écoulé ou réplique complète) : texte entendu. */
@@ -83,8 +81,8 @@ export function listen(expected: string, token: number, h: ListenHandlers) {
     if (done) return;
     const said = heard();
     end();
-    state.listener = null;
-    if (token === state.token) h.onDone(said);
+    control.listener = null;
+    if (token === control.token) h.onDone(said);
   };
   const keepListening = () =>
     Date.now() - startedAt < maxMs && !complete() && Date.now() - lastSpeech < GIVE_UP_SILENCE_MS;
@@ -104,11 +102,11 @@ export function listen(expected: string, token: number, h: ListenHandlers) {
       const notice = unavailableNotice(e.error);
       if (!notice) return;
       end();
-      state.listener = null;
+      control.listener = null;
       h.onUnavailable(notice);
     };
     r.onend = () => {
-      if (done || token !== state.token) return;
+      if (done || token !== control.token) return;
       before = heard();
       current = '';
       if (keepListening()) restart();
@@ -125,8 +123,7 @@ export function listen(expected: string, token: number, h: ListenHandlers) {
   };
 
   state.listening = true;
-  h.onStart();
   const hardTimer = setTimeout(finish, maxMs);
-  state.listener = { abort: end };
+  control.listener = { abort: end };
   restart();
 }

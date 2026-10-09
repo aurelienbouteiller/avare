@@ -27,9 +27,9 @@ import { initTheme } from './app/theme';
 import { showVersion } from './app/version';
 import { BLOCKS } from './data/scene';
 import { loadRecorded } from './storage/recordings';
-import { settings } from './storage/settings';
+import { autoSave, settings } from './storage/settings';
 import { IC } from './ui/icons';
-import { render } from './ui/render';
+import { mountViews } from './ui/render';
 
 // Icônes statiques de index.html (<span data-ic="…">).
 function fillStaticIcons() {
@@ -45,6 +45,7 @@ bindEvents();
 initSettingsDialog();
 showVersion();
 if (!BLOCKS.some((b) => b.n === settings.block)) settings.block = 1;
-loadRecorded().then(render);
+autoSave();
+mountViews();
+loadRecorded();
 initPwa();
-render();

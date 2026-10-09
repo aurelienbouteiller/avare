@@ -115,6 +115,9 @@ test.describe('en mains libres', () => {
     await page.goto('/');
     await dockButton(page, 'Commencer').click();
     await expect(page.locator('.ln.cur .timer')).toBeVisible();
+    // La barre de temps se remplit.
+    const bar = page.locator('.ln.cur .timer i');
+    await expect.poll(() => bar.evaluate((el) => el.getBoundingClientRect().width)).toBeGreaterThan(0);
     // Temps de la réplique écoulé : elle est révélée, puis la réplique de Frosine suit.
     await expect(page.locator('#status')).toHaveText("Vérifie à l'oreille.", { timeout: 10_000 });
     await expect(page.locator('.ln.cur')).toContainText(LINES[H1[0]].t);

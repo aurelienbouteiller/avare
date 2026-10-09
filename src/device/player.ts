@@ -1,5 +1,5 @@
 /* ---------- lecteur audio unique (clips enregistrés, ma voix) ---------- */
-import { state } from '../state';
+import { control } from '../state';
 import { settleOnce } from './timing';
 
 // Marge après la durée annoncée du clip, et limite si la durée reste inconnue.
@@ -20,7 +20,7 @@ function keepPitch() {
 
 /** Joue `src` jusqu'au bout ; faux si la séquence `token` a été interrompue. */
 export function playClip(src: string, rate: number, token: number) {
-  if (token !== state.token) return Promise.resolve(false);
+  if (token !== control.token) return Promise.resolve(false);
   // Une erreur de lecture ne bloque pas l'enchaînement : on passe à la suite comme si le clip était fini.
   const { promise, settle, extend } = settleOnce(MAX_MS, true);
   const onEnd = () => settle(true);
@@ -35,7 +35,7 @@ export function playClip(src: string, rate: number, token: number) {
   return promise.then((ok) => {
     // Seulement si un autre clip n'a pas pris la place entre-temps.
     if (player.onended === onEnd) player.onended = player.onerror = null;
-    return ok && token === state.token;
+    return ok && token === control.token;
   });
 }
 

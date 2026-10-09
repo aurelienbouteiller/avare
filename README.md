@@ -12,7 +12,7 @@ Tout est stocké sur l'appareil (`localStorage` pour les résultats, IndexedDB p
 
 ## Développement
 
-Node 24 ou plus récent (voir `.nvmrc`). Le code est en TypeScript strict (TypeScript 7), rendu avec [lit-html](https://lit.dev/docs/libraries/standalone-templates/), lint et formatage par [Biome](https://biomejs.dev), code mort détecté par [knip](https://knip.dev), tests unitaires avec Vitest et tests e2e avec Playwright.
+Node 24 ou plus récent (voir `.nvmrc`). Le code est en TypeScript strict (TypeScript 7), rendu avec [lit-html](https://lit.dev/docs/libraries/standalone-templates/) et rendu réactif par [signals](https://github.com/preactjs/signals/tree/main/packages/core), lint et formatage par [Biome](https://biomejs.dev), code mort détecté par [knip](https://knip.dev), tests unitaires avec Vitest et tests e2e avec Playwright.
 
 ```sh
 npm install        # installe aussi le hook pre-commit (Biome sur les fichiers indexés, puis typecheck)
@@ -29,17 +29,17 @@ Un échec de typecheck ou de test fait échouer `npm run build`, donc le déploi
 
 ## Organisation
 
-Le code est rangé par couche. Chaque couche n'importe que les couches au-dessus d'elle dans le tableau, et les imports circulaires sont interdits (règle Biome `noImportCycles`). Les modules de `device/` signalent ce qui se passe par callbacks ou par valeur de retour, et c'est `engine/` qui met à jour l'affichage.
+Le code est rangé par couche. Chaque couche n'importe que les couches au-dessus d'elle dans le tableau, et les imports circulaires sont interdits (règle Biome `noImportCycles`). Les modules de `device/` signalent ce qui se passe par callbacks ou par valeur de retour, `engine/` modifie l'état, et l'affichage se redessine seul : chaque zone de l'écran lit l'état dans un `watch`, qui la relance quand un champ lu change (une fois par tâche, même si plusieurs champs changent). Aucun module n'appelle le rendu, et les réglages se sauvegardent seuls.
 
 | Chemin | Rôle |
 | --- | --- |
-| `src/types.ts`, `src/state.ts` | Types partagés et listes de valeurs autorisées, état d'exécution partagé (phase, jeton de séquence…) |
+| `src/types.ts`, `src/reactive.ts`, `src/state.ts` | Types partagés et listes de valeurs autorisées ; `reactive` (objet dont chaque champ est un signal) et `watch` (relance une fonction quand ce qu'elle a lu change) ; état affiché (`state` : phase, réplique en cours…) et mécanique sans affichage (`control` : jeton de séquence, minuteur…) |
 | `src/data/scene.ts` | Texte de la scène, blocs, notes de jeu, plan de répétition |
 | `src/domain/` | Logique pure, sans DOM et testée : comparaison de la réplique dite (`compare`, `numbers`, `names`), ordre des répliques d'une séance (`sequence`), comptage et maîtrise (`stats`), répliques (`lines`), dates (`dates`) |
-| `src/storage/` | Données sur l'appareil : réglages et résultats validés au chargement (`settings`, localStorage), enregistrements de ta voix (`recordings`, IndexedDB) |
+| `src/storage/` | Données sur l'appareil, observées comme l'état : réglages et résultats validés au chargement et sauvegardés à chaque changement (`settings`, localStorage), enregistrements de ta voix (`recordings`, IndexedDB) |
 | `src/device/` | Capacités de l'appareil (`platform`), voix du téléphone (`tts`), voix enregistrées (`clips`), lecteur audio (`player`), réplique dite par la meilleure voix disponible (`speak`), reconnaissance vocale (`listen`), micro (`recorder`), écran allumé (`wake-lock`) |
-| `src/ui/` | Rendu des écrans en templates lit-html, à partir des données et de l'état seulement : un fichier par zone (`top`, `jour`, `lire`, `repeter`, `dock`), morceaux partagés (`parts`), icônes SVG intégrées (`icons`). Chaque composant a sa feuille de style à côté de lui (`jour.css`…) |
 | `src/engine/` | Orchestration : moteur de répétition (`rehearsal`), lecture des passages (`passage`), arrêt commun de tout son (`sound`) |
+| `src/ui/` | Rendu des écrans en templates lit-html, à partir des données et de l'état seulement, branché sur l'état par `render` : un fichier par zone (`top`, `jour`, `lire`, `repeter`, `dock`), morceaux partagés (`parts`), icônes SVG intégrées (`icons`). Chaque composant a sa feuille de style à côté de lui (`jour.css`…) |
 | `src/app/` | Branchement de l'interface : actions des boutons (`actions`), évènements (`events`), réglages (`settings-dialog`), thème, service worker (`pwa`), version |
 | `src/main.ts` | Démarrage, et import des feuilles de style dans l'ordre de la cascade |
 | `src/styles/` | Styles communs : thème clair et sombre (`theme`), bases et mise en page (`base`), cartes et boutons (`cards`), choix segmentés (`controls`) |

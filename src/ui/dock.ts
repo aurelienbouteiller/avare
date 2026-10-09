@@ -23,7 +23,7 @@ const toRepeter = (hasMine: boolean) =>
   main('to-repeter', html`${hasMine ? 'Répéter' : 'Répéter ce passage'}${IC.arrow}`);
 
 function lireDock(): Dock {
-  const hasMine = blockLines(settings.block).some((i) => recorded.has(i));
+  const hasMine = blockLines(settings.block).some((i) => recorded.value.has(i));
   if (state.passage) {
     return [live('live', 'Lecture du passage'), html`${side('stop-all', IC.stop, 'Arrêter')}${toRepeter(hasMine)}`];
   }

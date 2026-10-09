@@ -1,5 +1,5 @@
 /* ---------- enregistrement de ma voix ---------- */
-import { state } from '../state';
+import { control, state } from '../state';
 import { saveRecording } from '../storage/recordings';
 
 let mic: MediaStream | null = null,
@@ -30,12 +30,12 @@ export async function startRecorder(i: number, token: number): Promise<'started'
   } catch {
     return 'denied';
   }
-  if (token !== state.token || state.phase !== 'await') return 'skipped';
+  if (token !== control.token || state.phase !== 'await') return 'skipped';
   const chunks: Blob[] = [];
   const r = new MediaRecorder(stream);
   recorder = r;
   keep.set(r, false);
-  state.recSaved = savedOnStop(r, i, chunks);
+  control.recSaved = savedOnStop(r, i, chunks);
   r.ondataavailable = (e) => {
     if (e.data?.size) chunks.push(e.data);
   };

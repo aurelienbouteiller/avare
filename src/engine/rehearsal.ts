@@ -14,12 +14,10 @@ import { today } from '../domain/dates';
 import { isHarpagon } from '../domain/lines';
 import { buildSequence } from '../domain/sequence';
 import { emptyStat, recount } from '../domain/stats';
-import { state } from '../state';
+import { control, state } from '../state';
 import { recordingUrl } from '../storage/recordings';
-import { frosineBank, isMissed, save, settings, stats } from '../storage/settings';
+import { frosineBank, isMissed, settings, stats } from '../storage/settings';
 import { BANKS, type Line, type Mark } from '../types';
-import { renderDock } from '../ui/dock';
-import { render, renderScript } from '../ui/render';
 import { interrupt, markSegment, steadyVoice } from './sound';
 
 // Pauses de l'enchaînement mains libres.
@@ -47,7 +45,6 @@ function start() {
   state.pos = -1;
   if (!state.seq.length) {
     state.phase = 'empty';
-    render();
     return;
   }
   keepScreenOn();
@@ -58,7 +55,6 @@ function finish() {
   state.phase = 'done';
   releaseScreen();
   releaseMic();
-  render();
 }
 
 export function stop() {
@@ -66,7 +62,6 @@ export function stop() {
   state.phase = 'idle';
   releaseScreen();
   releaseMic();
-  render();
 }
 
 /* ---------- réplique suivante ---------- */
@@ -97,15 +92,14 @@ function unpredictableVoice(): FrosineVoice & { delay: number } {
 
 async function beginFrosine() {
   state.phase = 'frosine';
-  render();
   if (!canVoice()) return; // Pas de voix : on lit la réplique et on passe soi-même.
   const i = currentLine(),
-    token = state.token;
+    token = control.token;
   const voice = settings.wild ? unpredictableVoice() : { ...steadyVoice(), delay: 300 };
   await wait(voice.delay);
-  if (token !== state.token) return;
+  if (token !== control.token) return;
   const finished = await playFrosineLine(i, voice, token, markSegment);
-  if (finished && token === state.token) next();
+  if (finished && token === control.token) next();
 }
 
 /* ---------- réplique d'Harpagon : écoute, enregistrement, minuteur ---------- */
@@ -115,8 +109,7 @@ function beginHarpagon() {
   state.curMask = settings.mask;
   state.result = null;
   state.heard = '';
-  render();
-  const token = state.token,
+  const token = control.token,
     check = checkMode();
   if (check === 'voix') {
     startListening(i, token);
@@ -128,103 +121,80 @@ function beginHarpagon() {
 
 function startListening(i: number, token: number) {
   listen(LINES[i].t, token, {
-    onStart: renderDock,
     onHeard(text) {
       state.heard = text;
-      renderScript();
     },
     onDone: (said) => evaluate(i, said),
     onUnavailable(notice) {
       state.voiceOff = true;
       state.notice = notice;
-      if (token !== state.token) return;
-      render();
-      if (settings.hands) startHandsFreeTimer(LINES[i]);
+      if (token === control.token && settings.hands) startHandsFreeTimer(LINES[i]);
     },
   });
 }
 
 async function startRecording(i: number, token: number) {
-  const r = await startRecorder(i, token);
-  if (r === 'started') renderDock();
-  else if (r === 'denied') {
+  if ((await startRecorder(i, token)) === 'denied') {
     state.notice = "Micro refusé : l'enregistrement est désactivé.";
     settings.check = 'manual';
-    save();
-    render();
   }
 }
 
 /** Temps laissé pour dire la réplique en mains libres : un socle plus un temps par mot, selon le débit. */
 const handsFreeMs = (line: Line) => 1600 + (line.t.split(/\s+/).length * 450) / Math.max(settings.rate, 0.7);
 
-// Barre de temps sous la réplique courante, remplie en `ms`.
-function animateTimerBar(ms: number) {
-  const bar = document.querySelector<HTMLElement>('.ln.cur .timer i');
-  if (!bar) return;
-  // La barre peut être réutilisée par le rendu (Réessayer) : repartir de zéro sans transition.
-  bar.style.transitionDuration = '0ms';
-  bar.style.width = '0';
-  void bar.offsetWidth;
-  bar.style.transitionDuration = `${ms}ms`;
-  requestAnimationFrame(() =>
-    requestAnimationFrame(() => {
-      bar.style.width = '100%';
-    }),
-  );
-}
-
 function startHandsFreeTimer(line: Line) {
   const ms = handsFreeMs(line),
-    token = state.token;
-  animateTimerBar(ms);
-  state.timerId = setTimeout(() => {
-    if (token === state.token) reveal();
+    token = control.token;
+  // Barre de temps sous la réplique courante, dessinée par l'écran Répéter.
+  state.timerMs = ms;
+  state.timerAt = Date.now();
+  control.timerId = setTimeout(() => {
+    if (token === control.token) reveal();
   }, ms);
 }
 
 /* ---------- vérification ---------- */
 function stopListening() {
-  state.listener?.abort();
-  state.listener = null;
+  control.listener?.abort();
+  control.listener = null;
   state.listening = false;
 }
 
 function reveal() {
-  clearTimeout(state.timerId);
+  clearTimeout(control.timerId);
   const check = checkMode();
   stopListening();
   const wasRecording = state.recording;
   if (wasRecording) stopRecorder(true);
   state.phase = 'check';
-  render();
   if (!settings.hands) return;
   // Nouveau jeton : rien de ce qui précède (minuteur, écoute) ne doit plus relancer l'enchaînement.
   const i = currentLine(),
-    token = ++state.token;
+    token = ++control.token;
   handsFreeAfterReveal(i, token, check === 'rec' && wasRecording);
 }
 
 // Mains libres, après « Révéler » : ma prise si je viens de m'enregistrer, puis le modèle, puis la suite.
 async function handsFreeAfterReveal(i: number, token: number, playMyTake: boolean) {
   if (playMyTake) {
-    await state.recSaved;
+    await control.recSaved;
     const url = await recordingUrl(i);
-    if (url && token === state.token) {
+    if (url && token === control.token) {
       await playClip(url, 1, token);
       await wait(AFTER_MY_TAKE_MS);
     }
   }
-  if (token === state.token) await modelThenNext(i, token);
+  if (token === control.token) await modelThenNext(i, token);
 }
 
 // Mains libres : le modèle (ou un temps pour se redire la réplique), puis la réplique suivante.
 async function modelThenNext(i: number, token: number) {
   if (settings.tts) await playHarpagonModel(i, token);
   else await wait(SELF_CHECK_MS);
-  if (token !== state.token) return;
+  if (token !== control.token) return;
   await wait(BEFORE_NEXT_MS);
-  if (token === state.token) next();
+  if (token === control.token) next();
 }
 
 function evaluate(i: number, said: string) {
@@ -232,9 +202,8 @@ function evaluate(i: number, said: string) {
   const ok = state.result.score >= TOL[settings.tol || 'normale'];
   record(ok ? 'ok' : 'ko');
   state.phase = 'check';
-  render();
   if (!settings.hands) return;
-  const token = ++state.token;
+  const token = ++control.token;
   handsFreeAfterVoice(i, token, ok);
 }
 
@@ -242,7 +211,7 @@ function evaluate(i: number, said: string) {
 async function handsFreeAfterVoice(i: number, token: number, ok: boolean) {
   if (ok) {
     await wait(AFTER_CORRECT_MS);
-    if (token === state.token) next();
+    if (token === control.token) next();
     return;
   }
   await wait(BEFORE_MODEL_MS);
@@ -253,12 +222,12 @@ async function handsFreeAfterVoice(i: number, token: number, ok: boolean) {
 function record(mark: Mark) {
   const i = currentLine(),
     previous = state.marks[state.pos];
-  stats[i] = { ...recount(stats[i] ?? emptyStat(), mark, previous), last: mark };
+  stats.value = { ...stats.value, [i]: { ...recount(stats.value[i] ?? emptyStat(), mark, previous), last: mark } };
   state.tally = recount(state.tally, mark, previous);
-  state.marks[state.pos] = mark;
+  state.marks = { ...state.marks, [state.pos]: mark };
   // Répliques travaillées aujourd'hui : un jugement corrigé ne compte pas deux fois.
-  if (!previous) settings.daily[today()] = (settings.daily[today()] || 0) + 1;
-  save();
+  const d = today();
+  if (!previous) settings.daily = { ...settings.daily, [d]: (settings.daily[d] || 0) + 1 };
 }
 
 function judge(ok: boolean) {
@@ -269,7 +238,6 @@ function judge(ok: boolean) {
 /** Inverse le jugement de la réplique courante (« Compter juste » / « Compter faux »). */
 function flip() {
   record(state.marks[state.pos] === 'ok' ? 'ko' : 'ok');
-  render();
 }
 
 function retry() {
@@ -282,7 +250,6 @@ function hint() {
   const order = MASKS.map(([id]) => id);
   const k = order.indexOf(state.curMask);
   state.curMask = order[Math.min(k + 1, order.length - 1)];
-  renderScript();
 }
 
 /** Reprend à la dernière réplique de Frosine. */
