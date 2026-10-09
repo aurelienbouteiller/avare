@@ -55,7 +55,7 @@ Pour ajouter ou remplacer un clip, dépose simplement le MP3 dans `public/audio/
 
 Le site est entièrement statique. HTTPS est obligatoire (micro, service worker), ce que fournissent les deux plateformes.
 
-**Cloudflare Pages** (hébergement principal) : projet `souffleur-harpagon`, servi sur https://souffleur-harpagon.pages.dev et relié au dépôt GitHub, chaque push sur `main` redéploie (et chaque PR obtient une URL d'aperçu). Pour le recréer : Workers & Pages → Create → Pages → Connect to Git → `aurelienbouteiller/avare`, préréglage *Vite* (commande `npm run build`, dossier de sortie `dist`), variables d'environnement `NODE_VERSION=24` et `SKIP_INSTALL_SIMPLE_GIT_HOOKS=1`. Le commit affiché dans les réglages vient de `CF_PAGES_COMMIT_SHA`.
+**Cloudflare Workers** (hébergement principal) : Worker `souffleur-harpagon`, servi sur `souffleur-harpagon.<sous-domaine>.workers.dev` et relié au dépôt GitHub (Workers Builds) : chaque push sur `main` redéploie. `wrangler.jsonc` publie simplement `dist/` comme fichiers statiques. Pour le recréer : Workers & Pages → Create → Import a repository → `aurelienbouteiller/avare`, commande de build `npm run build`, commande de déploiement `npx wrangler deploy`, variables de build `NODE_VERSION=24` et `SKIP_INSTALL_SIMPLE_GIT_HOOKS=1`. Le commit affiché dans les réglages vient de `WORKERS_CI_COMMIT_SHA`.
 
 **Netlify** (ancien hébergement, conservé pendant la transition) : `netlify.toml` fixe la commande (`npm run build`), le dossier publié (`dist`) et la version de Node.
 

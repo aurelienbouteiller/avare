@@ -1,0 +1,9 @@
+// Cloudflare Workers : site statique, on publie simplement dist/ (public/_headers y est appliqué).
+{
+  "$schema": "https://unpkg.com/wrangler@4.149.0/config-schema.json",
+  "name": "souffleur-harpagon",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./dist"
+  }
+}
