@@ -1,7 +1,10 @@
 /* ---------- stockage ---------- */
-import type { Settings, Stat } from './types';
+import { BANKS, CHECKS, isOneOf, MASK_IDS, MODES, ORDERS, type Settings, SRCS, type Stat, THEMES, TOLS } from './types';
 
+// La clé garde son nom d'origine : le script de thème de index.html la lit aussi (champ s.theme).
 const KEY = 'souffleur-harpagon-v1';
+// Version du format sauvegardé. Les données sans `v` viennent d'avant son ajout et ont la même forme que v1.
+const VERSION = 1;
 const DEF: Settings = {
   mode: 'jour',
   block: 1,
@@ -21,21 +24,65 @@ const DEF: Settings = {
   done: {},
   daily: {},
 };
-export const S: Settings = { ...DEF },
-  STATS: Record<number, Stat> = {};
+
+type Obj = Record<string, unknown>;
+const isObj = (o: unknown): o is Obj => typeof o === 'object' && o !== null && !Array.isArray(o);
+const isNum = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+const isBool = (v: unknown): v is boolean => typeof v === 'boolean';
+const isDay = (k: string) => /^\d{4}-\d{2}-\d{2}$/.test(k);
+
+/** Lit les données sauvegardées en ne gardant que les valeurs valides ; le reste prend sa valeur par défaut. */
+export function parseSaved(raw: string | null): { s: Settings; st: Record<number, Stat> } {
+  const s: Settings = { ...DEF, done: {}, daily: {} };
+  const st: Record<number, Stat> = {};
+  let o: unknown = null;
+  try {
+    o = raw ? JSON.parse(raw) : null;
+  } catch {}
+  if (!isObj(o)) return { s, st };
+  // Point d'entrée des migrations futures : convertir ici `o` des versions antérieures vers VERSION.
+  const v = isObj(o.s) ? o.s : {};
+
+  if (isOneOf(MODES, v.mode)) s.mode = v.mode;
+  if (isNum(v.block)) s.block = v.block;
+  if (isOneOf(MASK_IDS, v.mask)) s.mask = v.mask;
+  if (isOneOf(ORDERS, v.order)) s.order = v.order;
+  if (isOneOf(CHECKS, v.check)) s.check = v.check;
+  if (isOneOf(TOLS, v.tol)) s.tol = v.tol;
+  if (isNum(v.rate) && v.rate > 0) s.rate = v.rate;
+  if (isBool(v.wild)) s.wild = v.wild;
+  if (isBool(v.hands)) s.hands = v.hands;
+  if (typeof v.voice === 'string') s.voice = v.voice;
+  if (isBool(v.tts)) s.tts = v.tts;
+  if (isBool(v.only)) s.only = v.only;
+  if (isOneOf(SRCS, v.src)) s.src = v.src;
+  if (isOneOf(BANKS, v.fv)) s.fv = v.fv;
+  if (isOneOf(THEMES, v.theme)) s.theme = v.theme;
+  if (isObj(v.done)) for (const [d, x] of Object.entries(v.done)) if (isDay(d) && x === true) s.done[d] = true;
+  if (isObj(v.daily)) for (const [d, n] of Object.entries(v.daily)) if (isDay(d) && isNum(n)) s.daily[d] = n;
+
+  if (isObj(o.st))
+    for (const [k, x] of Object.entries(o.st)) {
+      const i = Number(k);
+      if (!Number.isInteger(i) || i < 0 || !isObj(x)) continue;
+      st[i] = {
+        ok: isNum(x.ok) ? Math.max(0, x.ok) : 0,
+        ko: isNum(x.ko) ? Math.max(0, x.ko) : 0,
+        last: x.last === 'ok' || x.last === 'ko' ? x.last : '',
+      };
+    }
+  return { s, st };
+}
+
+let saved: ReturnType<typeof parseSaved> = { s: { ...DEF, done: {}, daily: {} }, st: {} };
 try {
-  const raw = localStorage.getItem(KEY);
-  if (raw) {
-    const o = JSON.parse(raw);
-    Object.assign(S, o.s || {});
-    Object.assign(STATS, o.st || {});
-  }
+  saved = parseSaved(localStorage.getItem(KEY));
 } catch {}
-S.done = S.done || {};
-S.daily = S.daily || {};
+export const S: Settings = saved.s,
+  STATS: Record<number, Stat> = saved.st;
 export function save() {
   try {
-    localStorage.setItem(KEY, JSON.stringify({ s: S, st: STATS }));
+    localStorage.setItem(KEY, JSON.stringify({ v: VERSION, s: S, st: STATS }));
   } catch {}
 }
 export function clearStats() {

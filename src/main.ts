@@ -361,7 +361,6 @@ if (TTS) {
   }
 }
 if (!BLOCKS.some((b) => b.n === S.block)) S.block = 1;
-if (!isOneOf(MODES, S.mode)) S.mode = 'jour';
 idbKeys().then((ks) => {
   for (const k of ks) RECS.add(+k);
   render();
