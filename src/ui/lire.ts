@@ -15,7 +15,7 @@ function readLine(i: number) {
     name = isHarpagon(i) ? 'Harpagon' : 'Frosine';
   const missed = isHarpagon(i) && isMissed(i) ? markLabel('ko', '· à revoir') : nothing;
   const myTake = isHarpagon(i) && recorded.value.has(i) ? miniRow(miniButton('myrec', i, 'Ma version')) : nothing;
-  const icon = html`<span class="inline-flex text-muted opacity-70 [&_.ic]:size-[0.95rem]">${playing ? EQ : IC.play}</span>`;
+  const icon = html`<span class="inline-flex text-muted opacity-70 [&_.ic]:size-4">${playing ? EQ : IC.play}</span>`;
   return html`<div class=${lineClass(line, playing ? 'playing' : 'read', true)} data-i=${i} role="button" tabindex="0" aria-label="Écouter la réplique de ${name}">
       ${who(line, 'read', html`${name}${missed}`, icon)}
       ${isHarpagon(i) ? line.t : frosineText(line, playing)}${myTake}</div>`;

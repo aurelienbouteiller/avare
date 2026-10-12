@@ -71,8 +71,8 @@ function checkHelp() {
 }
 
 const option = (label: string, choices: unknown, help: unknown = nothing) =>
-  html`<div class="mt-4 first-of-type:mt-[0.2rem]"><span class="mb-[0.35rem] block text-[0.8rem] font-semibold text-muted">${label}</span><div class=${SEGS}>${choices}</div>${help}</div>`;
-const optionHelp = (text: string) => html`<p class="mt-[0.4rem] mb-0 text-[0.84rem] text-muted">${text}</p>`;
+  html`<div class="mt-4 first-of-type:mt-1"><span class="mb-1.5 block text-xs font-semibold text-muted">${label}</span><div class=${SEGS}>${choices}</div>${help}</div>`;
+const optionHelp = (text: string) => html`<p class="mt-1.5 mb-0 text-sm text-muted">${text}</p>`;
 
 function sessionOptions() {
   return html`${option(
@@ -96,7 +96,7 @@ function onlyMissedToggle() {
   const detail = settings.only
     ? 'Chacune avec la réplique de Frosine qui la précède.'
     : `Sinon, les ${mine.length} répliques du passage.`;
-  return html`<button class="group mt-4 flex w-full items-center justify-between gap-4 rounded-xl border border-line bg-bg px-[0.9rem] py-3 text-left text-[0.92rem] font-semibold" data-act=${settings.only ? 'only-off' : 'only-on'} aria-pressed=${settings.only}><span>Seulement mes ${plural(missed, 'réplique')} à revoir<br><span class="${MUTED} font-medium">${detail}</span></span><span class=${SWITCH_IN_BUTTON}></span></button>`;
+  return html`<button class="group mt-4 flex w-full items-center justify-between gap-4 rounded-xl border border-line bg-bg px-3.5 py-3 text-left text-sm font-semibold" data-act=${settings.only ? 'only-off' : 'only-on'} aria-pressed=${settings.only}><span>Seulement mes ${plural(missed, 'réplique')} à revoir<br><span class="${MUTED} font-medium">${detail}</span></span><span class=${SWITCH_IN_BUTTON}></span></button>`;
 }
 
 function blockCard() {
@@ -104,9 +104,9 @@ function blockCard() {
     note = NOTES[b],
     m = mastery(b, stats.value);
   return html`<section class=${CARD}><p class=${KICKER}>${b ? `Bloc ${b} sur 6` : 'Toute la scène'}</p><h2 class=${CARD_TITLE}>${BLOCKS[b].short}</h2>
-        <p class="${CARD_TEXT} text-[0.92rem] font-semibold text-harp">Objectif : ${note.obj}</p><p class="${CARD_TEXT} ${MUTED}">${note.jeu}</p>
-        <div class="mt-[0.8rem] flex items-center gap-[0.7rem]">${masteryBar(m, 'h-2 flex-1')}<b class="text-[0.95rem]">${percent(m.ok, m.n)} %</b></div>
-        <p class="mt-[0.3rem] mb-[0.35rem] ${MUTED}">${masterySummary(m)}.</p></section>`;
+        <p class="${CARD_TEXT} text-sm font-semibold text-harp">Objectif : ${note.obj}</p><p class="${CARD_TEXT} ${MUTED}">${note.jeu}</p>
+        <div class="mt-3 flex items-center gap-3">${masteryBar(m, 'h-2 flex-1')}<b class="text-base">${percent(m.ok, m.n)} %</b></div>
+        <p class="mt-1 mb-1.5 ${MUTED}">${masterySummary(m)}.</p></section>`;
 }
 
 const nothingToReview = () =>
@@ -197,10 +197,10 @@ function doneCard() {
     total = ok + ko;
   const missed = state.seq.filter((_i, p) => state.marks[p] === 'ko');
   const score = total
-    ? html`<div class="score mt-[0.2rem] mb-[0.4rem] flex items-baseline gap-2"><b class="font-serif text-[2.6rem] leading-none text-harp">${ok} / ${total}</b><span class=${MUTED}>${ok > 1 ? 'justes' : 'juste'}</span></div>`
+    ? html`<div class="score mt-1 mb-1.5 flex items-baseline gap-2"><b class="font-serif text-4xl leading-none text-harp">${ok} / ${total}</b><span class=${MUTED}>${ok > 1 ? 'justes' : 'juste'}</span></div>`
     : html`<p class=${CARD_TEXT}>Passage terminé.</p>`;
   const review = missed.length
-    ? html`<p class="${CARD_TEXT} ${MUTED}">À revoir :</p><ul class="mt-[0.6rem] mb-0 list-none p-0">${missed.map((i) => html`<li class="mt-[0.4rem] border-l-3 border-l-ko py-2 pr-0 pl-[0.7rem] font-serif text-[1rem] text-ink">${excerpt(LINES[i].t)}</li>`)}</ul>`
+    ? html`<p class="${CARD_TEXT} ${MUTED}">À revoir :</p><ul class="mt-2.5 mb-0 list-none p-0">${missed.map((i) => html`<li class="mt-1.5 border-l-3 border-l-ko py-2 pr-0 pl-3 font-serif text-base text-ink">${excerpt(LINES[i].t)}</li>`)}</ul>`
     : total
       ? html`<p class=${CARD_TEXT}>Sans faute. Bravo !</p>`
       : nothing;
@@ -208,7 +208,7 @@ function doneCard() {
     checkMode() === 'rec' || settings.check === 'rec'
       ? html`<p class="${CARD_TEXT} ${MUTED}">Réécoute tes enregistrements dans Lire, avec « Ma voix ».</p>`
       : nothing;
-  return html`<section class="${CARD} mt-[0.8rem]"><h3 class=${CARD_LABEL}>Fin du passage</h3>${score}${review}${recHint}</section>`;
+  return html`<section class="${CARD} mt-3"><h3 class=${CARD_LABEL}>Fin du passage</h3>${score}${review}${recHint}</section>`;
 }
 
 export class Repeter extends Component {

@@ -11,15 +11,15 @@ import { BTN_S, BTN_S_KO, ICON_BTN, SEG, SEGS, SWITCH_INPUT } from './styles';
 
 const REPO = 'https://github.com/aurelienbouteiller/avare';
 
-const FIELD = 'flex items-center justify-between gap-4 border-b border-line py-[0.8rem]';
-const FIELD_COL = 'flex flex-col items-stretch gap-2 border-b border-line py-[0.8rem]';
-const SELECT = 'max-w-48 rounded-[10px] border border-line bg-bg p-2 text-[0.92rem] text-ink';
-const TIP = 'mt-[0.8rem] mb-0 text-[0.85rem] leading-normal text-muted';
+const FIELD = 'flex items-center justify-between gap-4 border-b border-line py-3';
+const FIELD_COL = 'flex flex-col items-stretch gap-2 border-b border-line py-3';
+const SELECT = 'max-w-48 rounded-xl border border-line bg-bg p-2 text-sm text-ink';
+const TIP = 'mt-3 mb-0 text-sm leading-normal text-muted';
 
-const group = (title: string, content: unknown, extra = 'mt-[0.6rem]') =>
-  html`<section class=${extra}><h3 class="mt-[0.8rem] mb-[0.2rem] text-[0.75rem] font-bold tracking-[0.1em] text-muted uppercase">${title}</h3>${content}</section>`;
+const group = (title: string, content: unknown, extra = 'mt-2.5') =>
+  html`<section class=${extra}><h3 class="mt-3 mb-1 text-xs font-bold tracking-widest text-muted uppercase">${title}</h3>${content}</section>`;
 const label = (title: string, help: unknown) =>
-  html`<div>${title}<small class="mt-[0.1rem] block text-[0.8rem] leading-[1.35] text-muted">${help}</small></div>`;
+  html`<div>${title}<small class="mt-0.5 block text-xs leading-snug text-muted">${help}</small></div>`;
 // `.selected` sur chaque option : une valeur posée sur le <select> arriverait avant ses options.
 const options = (list: [string, string][], value: string) =>
   list.map(([v, text]) => html`<option value=${v} .selected=${v === value}>${text}</option>`);
@@ -74,8 +74,8 @@ function frosineVoice() {
     </div>
     <div class=${FIELD}>${label('Frosine parle', 'Frosine lit ses répliques à voix haute.')}${toggle('optTts', settings.tts)}</div>
     <div class=${FIELD_COL}>
-      <div class="flex items-center justify-between gap-[0.6rem]">Vitesse<span class="font-bold text-harp">×${settings.rate.toFixed(2)}</span></div>
-      <input type="range" id="optRate" class="m-[2px] w-full accent-accent" min="0.7" max="1.4" step="0.05" .value=${String(settings.rate)}>
+      <div class="flex items-center justify-between gap-2.5">Vitesse<span class="font-bold text-harp">×${settings.rate.toFixed(2)}</span></div>
+      <input type="range" id="optRate" class="m-0.5 w-full accent-accent" min="0.7" max="1.4" step="0.05" .value=${String(settings.rate)}>
     </div>
     <div class=${FIELD}>${label('Voix du téléphone', info)}${select}</div>
     <div class=${FIELD}>
@@ -130,9 +130,9 @@ function display() {
 
 export class SettingsSheet extends Component {
   protected override render() {
-    return html`<dialog id="dlg" aria-labelledby="dlgTitle" class="m-[auto_auto_0] max-h-[88vh] w-full max-w-[34rem] overflow-auto rounded-t-[22px] bg-surface px-[1.15rem] pt-0 pb-[calc(1.2rem+env(safe-area-inset-bottom,0px))] text-ink shadow-card backdrop:bg-[rgba(10,4,8,0.6)] open:animate-sheet min-[46rem]:m-auto min-[46rem]:rounded-[22px]">
-      <div class="sticky top-0 z-1 flex items-center justify-between bg-surface pt-4 pb-[0.6rem]">
-        <h2 id="dlgTitle" class="m-0 font-serif text-[1.45rem] font-semibold">Réglages</h2>
+    return html`<dialog id="dlg" aria-labelledby="dlgTitle" class="mx-auto mt-auto mb-0 max-h-[88vh] w-full max-w-xl overflow-auto rounded-t-3xl bg-surface px-4.5 pt-0 pb-[calc(--spacing(5)+env(safe-area-inset-bottom,0px))] text-ink shadow-card backdrop:bg-[rgba(10,4,8,0.6)] open:animate-sheet md:m-auto md:rounded-3xl">
+      <div class="sticky top-0 z-1 flex items-center justify-between bg-surface pt-4 pb-2.5">
+        <h2 id="dlgTitle" class="m-0 font-serif text-2xl font-semibold">Réglages</h2>
         <button type="button" class=${ICON_BTN} id="btnClose" aria-label="Fermer">${IC.close}</button>
       </div>
       ${group('Voix de Frosine', frosineVoice())}
@@ -141,10 +141,10 @@ export class SettingsSheet extends Component {
       ${group(
         'Zone sensible',
         html`<div class="flex flex-wrap gap-2">
-          <button type="button" class="${BTN_S_KO} flex-[1_1_12rem]" id="btnReset">Effacer mes résultats</button>
-          <button type="button" class="${BTN_S_KO} flex-[1_1_12rem]" id="btnResetRec">Effacer mes enregistrements</button>
+          <button type="button" class="${BTN_S_KO} grow basis-48" id="btnReset">Effacer mes résultats</button>
+          <button type="button" class="${BTN_S_KO} grow basis-48" id="btnResetRec">Effacer mes enregistrements</button>
         </div>`,
-        'mt-[1.4rem]',
+        'mt-5.5',
       )}
     </dialog>`;
   }

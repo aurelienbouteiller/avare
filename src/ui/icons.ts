@@ -32,5 +32,5 @@ export const IC = {
   download: icon(svg`<path d="M12 3v12M7 10l5 5 5-5"/><path d="M5 21h14"/>`),
 };
 // Égaliseur animé, pour la réplique en cours de lecture.
-const BAR = 'w-[3px] rounded-[2px] bg-current animate-eq';
-export const EQ = html`<span class="inline-flex h-[0.9rem] items-end gap-[2px]" aria-hidden="true"><i class=${BAR}></i><i class="${BAR} [animation-delay:-0.3s]"></i><i class="${BAR} [animation-delay:-0.6s]"></i></span>`;
+const BAR = 'w-1 rounded-xs bg-current animate-eq';
+export const EQ = html`<span class="inline-flex h-3.5 items-end gap-0.5" aria-hidden="true"><i class=${BAR}></i><i class="${BAR} [animation-delay:-0.3s]"></i><i class="${BAR} [animation-delay:-0.6s]"></i></span>`;

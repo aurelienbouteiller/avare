@@ -13,8 +13,8 @@ import { inRun, markLabel, plural, type View } from './parts';
 type Status = View | string;
 type Dock = [status: Status, buttons: View];
 
-const BTN = 'inline-flex min-h-[3.6rem] items-center justify-center rounded-2xl';
-const MAIN = `${BTN} flex-1 gap-2 px-4 text-[1.05rem] font-bold [&_.ic]:size-[1.2em]`;
+const BTN = 'inline-flex min-h-14 items-center justify-center rounded-2xl';
+const MAIN = `${BTN} flex-1 gap-2 px-4 text-base font-bold [&_.ic]:size-[1.2em]`;
 const KIND = {
   main: `${MAIN} bg-accent text-on-accent`,
   ok: `${MAIN} bg-ok text-bg`,
@@ -22,11 +22,11 @@ const KIND = {
 };
 
 const side = (act: string, icon: TemplateResult, label: string) =>
-  html`<button class="${BTN} min-w-[4.6rem] flex-none flex-col gap-[0.15rem] border border-line bg-surface-2 px-[0.6rem] text-[0.75rem] font-semibold [&_.ic]:size-5" data-act=${act}>${icon}<span>${label}</span></button>`;
+  html`<button class="${BTN} min-w-18 flex-none flex-col gap-0.5 border border-line bg-surface-2 px-2.5 text-xs font-semibold [&_.ic]:size-5" data-act=${act}>${icon}<span>${label}</span></button>`;
 const main = (act: string, body: unknown, kind: keyof typeof KIND = 'main') =>
   html`<button class=${KIND[kind]} data-act=${act}>${body}</button>`;
 const live = (kind: 'live' | 'rec', label: string) =>
-  html`<span class="inline-flex items-center rounded-full px-[0.7rem] py-1 font-bold ${kind === 'rec' ? 'bg-ko-soft text-ko' : 'bg-fros-soft text-fros'}"><span class="mr-[0.4em] inline-block size-[0.6em] animate-blink rounded-full bg-current"></span>${label}</span>`;
+  html`<span class="inline-flex items-center rounded-full px-3 py-1 font-bold ${kind === 'rec' ? 'bg-ko-soft text-ko' : 'bg-fros-soft text-fros'}"><span class="mr-[0.4em] inline-block size-[0.6em] animate-blink rounded-full bg-current"></span>${label}</span>`;
 
 const toRepeter = (hasMine: boolean) =>
   main('to-repeter', html`${hasMine ? 'Répéter' : 'Répéter ce passage'}${IC.arrow}`);
@@ -48,7 +48,7 @@ function idleDock(): Dock {
     (x) => x !== false,
   );
   const pill = (x: string) =>
-    html`<span class="inline-flex items-center rounded-full bg-harp-soft px-[0.6rem] py-[0.15rem] text-[0.78rem] font-bold text-harp">${x}</span>`;
+    html`<span class="inline-flex items-center rounded-full bg-harp-soft px-2.5 py-0.5 text-xs font-bold text-harp">${x}</span>`;
   return [html`${modes.map(pill)}`, main('start', html`${IC.play}Commencer`)];
 }
 
@@ -130,12 +130,10 @@ export class DockBar extends Component {
     const hasStatus = status !== nothing && status !== '';
     const shown = state.notice ? html`${state.notice}${hasStatus ? html` ${status}` : ''}` : status;
     // En répétition, plus d'onglets dessous : le dock descend en bas de l'écran.
-    const place = inRun()
-      ? 'bottom-0 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]'
-      : 'bottom-(--navh) pb-[0.7rem]';
-    return html`<footer id="dock" class="fixed inset-x-0 z-6 border-t border-line bg-[color-mix(in_srgb,var(--surface)_94%,transparent)] px-4 pt-[0.6rem] backdrop-blur-[10px] ${place}">
-      <div id="status" class="mx-auto mb-2 flex min-h-[1.3em] max-w-[44rem] flex-wrap items-center justify-center gap-[0.4rem] text-center text-[0.88rem] text-muted empty:hidden" aria-live="polite">${shown}</div>
-      <div id="row" class="mx-auto flex max-w-[44rem] gap-2">${buttons}</div>
+    const place = inRun() ? 'bottom-0 pb-[calc(--spacing(3)+env(safe-area-inset-bottom,0px))]' : 'bottom-(--navh) pb-3';
+    return html`<footer id="dock" class="fixed inset-x-0 z-6 border-t border-line bg-surface/94 px-4 pt-2.5 backdrop-blur-md ${place}">
+      <div id="status" class="mx-auto mb-2 flex min-h-[1.3em] max-w-2xl flex-wrap items-center justify-center gap-1.5 text-center text-sm text-muted empty:hidden" aria-live="polite">${shown}</div>
+      <div id="row" class="mx-auto flex max-w-2xl gap-2">${buttons}</div>
     </footer>`;
   }
 }

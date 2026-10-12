@@ -9,9 +9,9 @@ import { inRun } from './parts';
 
 // Marge du bas : de quoi laisser voir la fin du texte au-dessus du dock et des onglets.
 function bottomSpace() {
-  if (settings.mode === 'jour') return 'pb-[calc(var(--navh)+1.5rem)]';
-  if (inRun()) return 'pb-[calc(12rem+env(safe-area-inset-bottom,0px))]';
-  return 'pb-[calc(var(--navh)+10rem)]';
+  if (settings.mode === 'jour') return 'pb-[calc(var(--navh)+--spacing(6))]';
+  if (inRun()) return 'pb-[calc(--spacing(48)+env(safe-area-inset-bottom,0px))]';
+  return 'pb-[calc(var(--navh)+--spacing(40))]';
 }
 
 function screen() {
@@ -22,7 +22,7 @@ function screen() {
 
 export class Script extends Component {
   protected override render() {
-    return html`<main class="px-4 pt-4 ${bottomSpace()}"><div id="script" class="mx-auto flex max-w-[44rem] flex-col gap-[0.45rem]">${screen()}</div></main>`;
+    return html`<main class="px-4 pt-4 ${bottomSpace()}"><div id="script" class="mx-auto flex max-w-2xl flex-col gap-2">${screen()}</div></main>`;
   }
 }
 customElements.define('sf-script', Script);
