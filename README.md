@@ -6,8 +6,6 @@ Appli web installable (PWA) pour apprendre le rôle d'Harpagon dans *L'Avare*, a
 - **Lire** : la scène découpée en 6 blocs, avec notes de jeu ; touche une réplique pour l'entendre.
 - **Répéter** : Frosine donne la réplique (voix enregistrées ou voix du téléphone), tu dis la tienne, masquée à divers degrés. Vérification manuelle, à la voix (reconnaissance vocale) ou en t'enregistrant.
 
-Le dossier [`reunification/`](reunification/README.md) contient un second site bâti sur la même base, pour répéter *La Réunification des deux Corées* de Joël Pommerat (pièce chorale, texte importé par chacun).
-
 Thème « velours et or » sombre par défaut, thème clair ou automatique dans les réglages.
 
 Tout est stocké sur l'appareil (`localStorage` pour les résultats, IndexedDB pour les enregistrements). Une fois chargée, l'appli fonctionne hors ligne, sauf la vérification à la voix.
