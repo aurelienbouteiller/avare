@@ -30,7 +30,7 @@ const summary = (p: Play) =>
 /* ---------- le texte ---------- */
 const formatHelp = () =>
   html`<details class="mt-3 text-sm"><summary class="cursor-pointer py-1 font-semibold">Format attendu</summary>
-    <p class="${CARD_TEXT} ${MUTED}">Du texte brut, copié depuis ton édition numérique ou retapé. Chaque scène commence par <b>#</b> suivi de son titre (ou par « Scène 3 »). Chaque réplique commence par le nom du personnage <b>en capitales</b>, suivi d'un point, de deux-points ou d'un tiret, ou seul sur sa ligne. Une ligne entre parenthèses ou crochets est une didascalie.</p>
+    <p class="${CARD_TEXT} ${MUTED}">Le PDF d'une édition numérique est mis en forme tout seul : titres de scène entre tirets (« — titre — »), noms des personnages en capitales, didascalies en italique. Sinon, du texte brut, copié ou retapé. Chaque scène commence par <b>#</b> suivi de son titre (ou par « Scène 3 »). Chaque réplique commence par le nom du personnage <b>en capitales</b>, suivi d'un point, de deux-points ou d'un tiret, ou seul sur sa ligne. Une ligne entre parenthèses ou crochets est une didascalie.</p>
     <pre class="mt-2 overflow-x-auto rounded-xl border border-line bg-bg p-3 font-mono text-xs leading-normal whitespace-pre text-ink">${FORMAT_EXAMPLE}</pre>
     <p class="${CARD_TEXT} ${MUTED}">Vérifie l'aperçu avant de valider : chaque scène doit avoir les bons personnages.</p></details>`;
 
@@ -54,13 +54,18 @@ function importer(draft: string) {
 function textCard() {
   const p = play.value;
   const status = isDemo.value
-    ? html`<p class=${CARD_TEXT}>Un <b>texte d'exemple</b> est chargé pour essayer l'appli. Importe le texte de la pièce depuis ton édition : il reste sur ton téléphone et n'est envoyé nulle part.</p>`
+    ? html`<p class=${CARD_TEXT}>Un <b>texte d'exemple</b> est chargé pour essayer l'appli. Importe le texte de la pièce depuis ton édition (PDF ou texte) : il est lu sur ton téléphone, y reste, et n'est envoyé nulle part.</p>`
     : html`<p class=${CARD_TEXT}>Texte importé : ${summary(p)}.</p>`;
   const buttons = html`<div class=${BTN_ROW}>
-      <label class="${BTN_S} flex-auto cursor-pointer">${IC.file}Ouvrir un fichier<input id="fileText" type="file" accept=".txt,.md,text/plain" class="sr-only"></label>
+      <label class="${BTN_S} flex-auto cursor-pointer">${IC.file}Ouvrir un fichier<input id="fileText" type="file" accept=".pdf,.txt,.md,application/pdf,text/plain" class="sr-only"></label>
       <button class="${BTN_S} flex-auto" data-act="text-paste">Coller le texte</button>
       ${isDemo.value ? nothing : html`<button class="${BTN_S_KO} flex-auto" data-act="text-reset">Revenir à l'exemple</button>`}</div>`;
-  return html`<section class="${CARD} text-card"><h3 class=${CARD_LABEL}>Le texte</h3>${status}${state.draft === null ? html`${buttons}${formatHelp()}` : importer(state.draft)}</section>`;
+  const body = state.importing
+    ? html`<p class="${CARD_TEXT} reading font-semibold text-me">Lecture du PDF…</p>`
+    : state.draft === null
+      ? html`${buttons}${formatHelp()}`
+      : importer(state.draft);
+  return html`<section class="${CARD} text-card"><h3 class=${CARD_LABEL}>Le texte</h3>${status}${body}</section>`;
 }
 
 /* ---------- ma distribution ---------- */

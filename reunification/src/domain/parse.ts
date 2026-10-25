@@ -46,12 +46,14 @@ interface Draft {
   w: string;
   b: number;
   parts: string[];
+  /** Didascalie seule : personnage dont la réplique reprend après elle. */
+  resume?: string;
 }
 
 /**
  * Pièce lue dans le texte brut. Une scène commence par « # Titre » (ou « Scène 3 »), une réplique par le nom du
  * personnage en capitales (« LA FEMME. Texte », « LE MARI : Texte », ou le nom seul sur sa ligne). Une ligne entre
- * parenthèses ou crochets est une didascalie. Les autres lignes continuent la réplique en cours.
+ * parenthèses ou crochets est une didascalie seule. Les autres lignes continuent la réplique en cours.
  */
 export function parsePlay(raw: string): Play {
   const scenes: Scene[] = [];
@@ -87,9 +89,10 @@ export function parsePlay(raw: string): Play {
       continue;
     }
     if (DIDASCALIA.test(line)) {
-      // Dans une réplique, elle en fait partie ; sinon elle est seule.
-      if (cur?.w) cur.parts.push(line);
-      else push('', line);
+      // Seule sur sa ligne, elle se place entre deux répliques ; le texte qui la suit reprend la réplique interrompue.
+      const resume = cur?.w || cur?.resume || '';
+      push('', line);
+      if (cur) cur.resume = resume;
       continue;
     }
     const sp = speakerOf(line);
@@ -97,7 +100,8 @@ export function parsePlay(raw: string): Play {
       push(sp.name, [sp.before, sp.text].filter(Boolean).join(' '));
       continue;
     }
-    if (cur) cur.parts.push(line);
+    if (cur && !cur.w && cur.resume) push(cur.resume, line);
+    else if (cur) cur.parts.push(line);
     else push('', `(${line})`);
   }
 

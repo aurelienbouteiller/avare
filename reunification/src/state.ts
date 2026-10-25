@@ -26,6 +26,7 @@ export const state: RuntimeState = reactive<RuntimeState>({
   installPrompt: null,
   offlineReady: false,
   draft: null,
+  importing: false,
 });
 
 /** Mécanique de l'exécution, sans effet sur l'affichage. */

@@ -1,4 +1,6 @@
 /* ---------- interactions de l'écran principal (évènements délégués) ---------- */
+import { readPdf } from '../device/pdf';
+import { bookToScript } from '../domain/book';
 import { stop } from '../engine/rehearsal';
 import { state } from '../state';
 import { settings } from '../storage/settings';
@@ -63,12 +65,29 @@ function onScriptInput(e: Event) {
   }
 }
 
+// Un PDF (édition numérique) est lu et mis au format d'import ; un fichier texte est pris tel quel.
+async function readFile(file: File) {
+  if (file.type !== 'application/pdf' && !/\.pdf$/i.test(file.name)) return file.text();
+  state.importing = true;
+  try {
+    return bookToScript(await readPdf(file));
+  } finally {
+    state.importing = false;
+  }
+}
+
 async function onScriptChange(e: Event) {
   const el = e.target as HTMLInputElement;
   if (el.id !== 'fileText') return;
   const file = el.files?.[0];
   el.value = '';
-  if (file) state.draft = await file.text();
+  if (!file) return;
+  try {
+    state.draft = await readFile(file);
+  } catch (err) {
+    console.warn(err);
+    alert("Ce fichier n'a pas pu être lu.");
+  }
 }
 
 // En-tête : puces de scène, ou bouton d'arrêt de la barre de répétition.

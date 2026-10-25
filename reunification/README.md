@@ -17,11 +17,19 @@ de scènes courtes, beaucoup de personnages, et chaque comédien qui joue plusie
 ## Le texte de la pièce
 
 Le texte de Joël Pommerat est protégé par le droit d'auteur : **il n'est pas dans ce dépôt**. Chaque comédien importe
-le texte de son édition dans l'écran Rôles (fichier `.txt` ou copier-coller) ; il reste sur son appareil
+le texte de son édition dans l'écran Rôles : le **PDF de l'édition numérique**, un fichier `.txt` ou un copier-coller.
+Le PDF est lu dans le navigateur ([pdf.js](https://mozilla.github.io/pdf.js/), chargé seulement à l'import) et mis au
+format ci-dessous ; un aperçu permet de vérifier, et même de corriger, avant de valider. Le texte reste sur l'appareil
 (`localStorage`) et n'est envoyé nulle part. En attendant, un court texte d'exemple, écrit pour l'appli
 (`src/data/demo.ts`), permet de l'essayer.
 
-Format attendu (voir aussi l'aide de l'écran Rôles) :
+Le PDF est reconnu à sa mise en page : titres de scène entre tirets (« — titre — »), noms des personnages en
+capitales (en petites capitales, plus petites que le texte), didascalies en italique. Les pages qui précèdent le
+premier titre, les numéros de page et les pages de l'éditeur à la fin sont laissés de côté, les mots coupés en fin de
+ligne sont recollés, et une réplique qui reprend après une didascalie est rendue à son personnage
+(`src/domain/book.ts` pour la mise en forme, `src/device/pdf.ts` pour la lecture).
+
+Format d'import du texte brut (voir aussi l'aide de l'écran Rôles) :
 
 ```text
 # Titre de la scène
@@ -38,7 +46,7 @@ Le nom peut aussi être seul sur sa ligne.
 Une scène commence par `#` suivi de son titre (ou par « Scène 3 »). Une réplique commence par le nom du personnage en
 capitales, suivi d'un point, de deux-points ou d'un tiret, ou seul sur sa ligne. Une ligne entre parenthèses ou
 crochets est une didascalie ; dans une réplique, une parenthèse est une didascalie qu'on ne dit pas. Les retours à la
-ligne du texte sont gardés.
+ligne du texte sont gardés. Seule sur sa ligne, une didascalie se place entre deux répliques.
 
 Un rôle est un personnage *dans une scène* (`titre de scène|PERSONNAGE`) : « La femme » d'une scène n'est pas jouée par
 la même comédienne que « La femme » d'une autre. Résultats et enregistrements sont rangés sous un identifiant tiré du
@@ -67,6 +75,8 @@ Les couches sont celles du souffleur d'Harpagon. Ce qui change :
 
 | Chemin | Rôle |
 | --- | --- |
+| `src/domain/book.ts` | Lignes d'une édition imprimée (PDF) mises au format d'import |
+| `src/device/pdf.ts` | Lecture d'un PDF dans le navigateur : lignes, corps et italique de chaque morceau |
 | `src/domain/parse.ts` | Lecture du texte importé : scènes, personnages, répliques, didascalies, identifiants stables |
 | `src/domain/lines.ts` | Clé d'un rôle, nom affiché, réplique d'appel (en sautant les didascalies) |
 | `src/domain/suggest.ts` | Séance proposée d'après la maîtrise de chaque scène et les jours restants |

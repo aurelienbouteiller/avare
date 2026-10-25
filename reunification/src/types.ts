@@ -114,6 +114,8 @@ export interface RuntimeState {
   offlineReady: boolean;
   /** Texte collé ou ouvert dans l'écran Rôles, pas encore adopté (null : pas d'import en cours). */
   draft: string | null;
+  /** Lecture d'un PDF en cours. */
+  importing: boolean;
 }
 /** Mécanique de l'exécution, jamais affichée. */
 export interface Control {

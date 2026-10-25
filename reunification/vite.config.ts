@@ -43,8 +43,9 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // Tout est précaché : l'appli fonctionne hors ligne. Le texte de la pièce reste sur l'appareil.
-        globPatterns: ['**/*.{html,js,css,woff2,png}'],
+        // Tout est précaché (lecteur de PDF compris) : l'appli fonctionne hors ligne. Le texte de la pièce reste sur
+        // l'appareil.
+        globPatterns: ['**/*.{html,js,mjs,css,woff2,png}'],
         cleanupOutdatedCaches: true,
         navigateFallback: 'index.html',
       },
