@@ -1,0 +1,79 @@
+/* ---------- en-tête : titre et puces de scène, ou barre de répétition ---------- */
+import { html, nothing } from 'lit';
+import { mastery } from '../domain/stats';
+import { state } from '../state';
+import { isMine, myLineIds, myScenes, play, sceneLabel } from '../storage/play';
+import { settings, stats } from '../storage/settings';
+import { Component } from './component';
+import { IC } from './icons';
+import { inRun, masteryBar } from './parts';
+import { ICON_BTN } from './styles';
+
+function runLabel() {
+  return (
+    sceneLabel(settings.block) +
+    (settings.only ? ' · à revoir' : '') +
+    (settings.order === 'hasard' ? ' · au hasard' : '')
+  );
+}
+
+// « Réplique 3 sur 12 » : rang de ma réplique en cours parmi celles de la séance.
+function runCount() {
+  if (state.phase === 'done') return 'Terminé';
+  const total = state.seq.filter(isMine).length;
+  const reached = state.seq.slice(0, state.pos + 1).filter(isMine).length;
+  return `Réplique ${Math.max(reached, 1)} sur ${total}`;
+}
+
+function runbar() {
+  const done = state.phase === 'done';
+  const pct = done ? 100 : Math.round((100 * (state.pos + 1)) / state.seq.length);
+  const { ok, ko } = state.tally;
+  const pill = 'inline-flex items-center gap-1 rounded-full px-2 py-1';
+  return html`<div id="runbar" class="grid grid-cols-[auto_1fr_auto] items-center gap-3">
+      <button class=${ICON_BTN} data-act="run-stop" aria-label=${done ? 'Fermer' : 'Arrêter la répétition'}>${IC.close}</button>
+      <div class="min-w-0"><div class="truncate font-serif text-base font-semibold">${runLabel()}</div><div class="count text-sm text-muted">${runCount()}</div></div>
+      <div class="tally flex gap-1.5 text-sm font-bold [&_.ic]:size-[0.95em]" aria-label="${ok} justes, ${ko} à revoir"><span class="ok ${pill} bg-ok-soft text-ok">${IC.check}${ok}</span><span class="ko ${pill} bg-ko-soft text-ko">${IC.cross}${ko}</span></div>
+      <div class="col-span-full h-1 overflow-hidden rounded-sm bg-line"><i class="block h-full rounded-sm bg-me transition-[width] duration-300" style="width:${pct}%"></i></div></div>`;
+}
+
+const titlebar = () =>
+  html`<div class="flex items-center justify-between gap-4">
+      <div>
+        <h1 class="m-0 font-serif text-2xl leading-none font-semibold tracking-normal text-me">Le souffleur</h1>
+        <p class="mt-0.5 mb-0 text-sm text-muted"><i>La Réunification des deux Corées</i> · Joël Pommerat</p>
+      </div>
+      <button type="button" class=${ICON_BTN} id="btnSettings" aria-label="Réglages">${IC.gear}</button>
+    </div>`;
+
+// Puces : mes scènes (en Lire, toutes les scènes, les miennes avec leur barre de maîtrise).
+function chips() {
+  const chip = (n: number) => {
+    const m = mastery(myLineIds(n), stats.value);
+    const badge = m.ko
+      ? html`<span class="badge inline-grid h-5 min-w-5 place-items-center rounded-full bg-ko px-1 text-xs font-bold text-bg" aria-label="${m.ko} à revoir">${m.ko}</span>`
+      : nothing;
+    const label = sceneLabel(n);
+    return html`<button class="relative inline-flex max-w-56 min-w-22 flex-none flex-col items-stretch gap-1.5 rounded-xl border border-line bg-surface px-3 pt-2 pb-2 text-sm font-semibold whitespace-nowrap aria-pressed:border-me aria-pressed:bg-me-soft aria-pressed:text-ink" data-block=${n} aria-pressed=${settings.block === n} title=${label}><span class="flex items-center justify-between gap-2"><span class="truncate">${label}</span>${badge}</span>${m.n ? masteryBar(m) : html`<span class="h-1"></span>`}</button>`;
+  };
+  const mine = myScenes().map((s) => s.n);
+  const shown = settings.mode === 'lire' || !mine.length ? play.value.scenes.map((s) => s.n) : mine;
+  return html`<nav id="chips" class="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4 pt-2.5 pb-0.5" aria-label="Scènes">${[0, ...shown].map(chip)}</nav>`;
+}
+
+export class Top extends Component {
+  // En répétition, la barre de progression remplace le titre et les puces.
+  protected override render() {
+    const run = inRun();
+    return html`<header class="sticky top-0 z-5 border-b border-line bg-bg px-4 pt-[calc(--spacing(3)+env(safe-area-inset-top,0px))] pb-2.5">
+      <div class="mx-auto max-w-2xl">${run ? runbar() : html`${titlebar()}${settings.mode === 'lire' || settings.mode === 'repeter' ? chips() : nothing}`}</div>
+    </header>`;
+  }
+}
+customElements.define('sf-top', Top);
+
+declare global {
+  interface HTMLElementTagNameMap {
+    'sf-top': Top;
+  }
+}

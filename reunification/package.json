@@ -1,0 +1,40 @@
+{
+  "name": "souffleur-reunification",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "npm run typecheck && vitest run && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.node.json",
+    "lint": "biome check",
+    "format": "biome check --write",
+    "test": "vitest run",
+    "check": "biome ci && npm run typecheck && knip && vitest run",
+    "e2e": "playwright test",
+    "knip": "knip"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.15",
+    "@fontsource/archivo": "^5.3.0",
+    "@fontsource/spectral": "^5.3.0",
+    "@playwright/test": "1.64.0",
+    "@tailwindcss/vite": "4.3.3",
+    "@types/dom-speech-recognition": "0.0.12",
+    "@types/node": "24.19.1",
+    "knip": "6.41.0",
+    "tailwindcss": "4.3.3",
+    "typescript": "7.0.2",
+    "vite": "^8.3.4",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "5.0.3"
+  },
+  "dependencies": {
+    "@preact/signals-core": "1.14.4",
+    "lit": "3.3.3"
+  }
+}
